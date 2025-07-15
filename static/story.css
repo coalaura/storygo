@@ -1,0 +1,149 @@
+* {
+	box-sizing: border-box;
+}
+
+html,
+body {
+	font-size: 16px;
+	color: #cad3f5;
+	background: #181926;
+	font-family: "Lexend", sans-serif;
+}
+
+#page {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	max-width: 95%;
+	width: 1200px;
+	height: 95%;
+	overflow: hidden;
+}
+
+h2 {
+	margin: 0;
+	font-size: 20px;
+}
+
+textarea,
+button {
+	display: block;
+	font-family: inherit;
+	font-size: inherit;
+	color: inherit;
+	outline: none;
+	background: transparent;
+}
+
+textarea {
+	display: block;
+	width: 100%;
+	padding: 4px 6px;
+	resize: none;
+	height: 100%;
+	border: 1px solid #5b6078;
+	background: #24273a;
+}
+
+button {
+	cursor: pointer;
+	border: none;
+}
+
+.flex {
+	display: flex;
+	gap: 12px;
+	flex-shrink: 0;
+	overflow: hidden;
+}
+
+.flex.full {
+	height: 100%;
+	flex-shrink: 1;
+}
+
+.flex.col {
+	flex-direction: column;
+	gap: 6px;
+}
+
+.relative {
+	position: relative;
+}
+
+#image {
+	display: none;
+}
+
+#preview {
+	width: 180px;
+	height: 100%;
+	border: 1px solid #5b6078;
+	background: #24273a;
+}
+
+#preview {
+	position: relative;
+	cursor: pointer;
+}
+
+#preview::before {
+	content: "";
+	display: block;
+	position: absolute;
+	width: 30px;
+	height: 30px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-image: url(icons/upload.svg);
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
+	pointer-events: none;
+}
+
+#preview.uploading::before {
+	background-image: url(icons/loading.svg);
+	animation: rotating 2s linear infinite;
+}
+
+#preview.image::before {
+	display: none;
+}
+
+#preview.image {
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+#generate {
+	position: absolute;
+	bottom: 8px;
+	right: 8px;
+	width: 30px;
+	height: 30px;
+	background-image: url(icons/send.svg);
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.generating #generate {
+	background-image: url(icons/stop.svg);
+}
+
+@keyframes rotating {
+	from {
+		transform: translate(-50%, -50%) rotate(0deg);
+	}
+
+	to {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
