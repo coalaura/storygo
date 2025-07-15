@@ -146,10 +146,10 @@ func DescribeImage(hash string, img image.Image) error {
 	}
 
 	if _, err := os.Stat("images"); os.IsNotExist(err) {
-		os.Mkdir("images", 0644)
+		os.Mkdir("images", 755)
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return err
 	}
