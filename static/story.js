@@ -3,6 +3,7 @@
 		$context = document.getElementById("context"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
+		$export = document.getElementById("export"),
 		$markdown = document.getElementById("markdown"),
 		$text = document.getElementById("text"),
 		$direction = document.getElementById("direction"),
@@ -52,6 +53,26 @@
 			$text.removeAttribute("disabled");
 			$direction.removeAttribute("disabled");
 		}
+	}
+
+	function download(name, type, data) {
+		const blob = new Blob([data], {
+			type: type,
+		});
+
+		const url = URL.createObjectURL(blob),
+			a = document.createElement("a");
+
+		a.style.display = "none";
+		a.href = url;
+		a.download = name;
+
+		document.body.appendChild(a);
+
+		a.click();
+
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
 	}
 
 	function store(name, value) {
@@ -161,23 +182,25 @@
 
 		if (!text) return;
 
-		const blob = new Blob([text], {
-			type: "text/markdown",
-		});
+		download("story.md", "text/markdown", text);
+	});
 
-		const url = URL.createObjectURL(blob),
-			a = document.createElement("a");
+	$export.addEventListener("click", () => {
+		if (generating) return;
 
-		a.style.display = "none";
-		a.href = url;
-		a.download = "story.md";
-
-		document.body.appendChild(a);
-
-		a.click();
-
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
+		download(
+			"story.json",
+			"application/json",
+			JSON.stringify(
+				{
+					context: $context.value.trim(),
+					story: $text.value.trim(),
+					direction: $direction.value.trim(),
+				},
+				null,
+				4,
+			),
+		);
 	});
 
 	$preview.addEventListener("click", () => {
