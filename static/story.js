@@ -149,7 +149,7 @@
 				decoder = new TextDecoder();
 
 			if (payload.text) {
-				$text.value += "\n\n";
+				payload.text += "\n\n";
 			}
 
 			while (true) {
@@ -161,10 +161,13 @@
 					stream: true,
 				});
 
-				$text.value = ($text.value + chunk).replace(/ {2,}/g, " ");
+				payload.text += chunk;
+				payload.text = payload.text.replace(/ {2,}/g, " ");
+
+				$text.value = payload.text;
 				$text.scrollTop = $text.scrollHeight;
 
-				store("text", $text.value);
+				store("text", payload.text);
 			}
 		} catch (err) {
 			if (err.name !== "AbortError") {
