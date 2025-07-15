@@ -2,6 +2,9 @@ package main
 
 import (
 	"net/http"
+	"os/exec"
+	"runtime"
+	"time"
 
 	"github.com/coalaura/logger"
 	"github.com/go-chi/chi/v5"
@@ -25,6 +28,29 @@ func main() {
 	r.Post("/upload", HandleImageUpload)
 	r.Post("/generate", HandleGeneration)
 
+	time.AfterFunc(time.Second, open)
+
 	log.Debug("Listening at http://localhost:3344/")
 	http.ListenAndServe(":3344", r)
+}
+
+func open() {
+	var (
+		cmd  string
+		args []string
+	)
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+
+	args = append(args, "http://localhost:3344/")
+
+	exec.Command(cmd, args...).Start()
 }

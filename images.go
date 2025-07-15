@@ -19,7 +19,6 @@ import (
 	"github.com/coalaura/lock"
 	"github.com/corona10/goimagehash"
 	"github.com/gen2brain/webp"
-	_ "github.com/gen2brain/webp"
 	"github.com/nfnt/resize"
 	"github.com/revrost/go-openrouter"
 
