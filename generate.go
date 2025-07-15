@@ -192,3 +192,11 @@ func ParseTemplateOrPanic(text string) *template.Template {
 
 	return tmpl
 }
+
+func CleanChunk(chunk string) string {
+	chunk = strings.ReplaceAll(chunk, "—\"", "-\"")
+
+	chunk = strings.ReplaceAll(chunk, "—", ", ")
+
+	return chunk
+}

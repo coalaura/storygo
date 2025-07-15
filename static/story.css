@@ -59,6 +59,7 @@ button {
 	gap: 12px;
 	flex-shrink: 0;
 	overflow: hidden;
+	justify-content: space-between;
 }
 
 .flex.full {
@@ -136,6 +137,15 @@ button {
 
 .generating #generate {
 	background-image: url(icons/stop.svg);
+}
+
+#markdown {
+	width: 25px;
+	height: 25px;
+	background-image: url(icons/markdown.svg);
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
 }
 
 @keyframes rotating {

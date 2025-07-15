@@ -3,6 +3,7 @@
 		$context = document.getElementById("context"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
+		$markdown = document.getElementById("markdown"),
 		$text = document.getElementById("text"),
 		$direction = document.getElementById("direction"),
 		$generate = document.getElementById("generate");
@@ -136,10 +137,10 @@
 				if (done) break;
 
 				const chunk = decoder.decode(value, {
-					stream: true
+					stream: true,
 				});
 
-				$text.value += chunk;
+				$text.value = ($text.value + chunk).replace(/ {2,}/g, " ");
 				$text.scrollTop = $text.scrollHeight;
 
 				store("text", $text.value);
@@ -153,15 +154,41 @@
 		}
 	});
 
+	$markdown.addEventListener("click", () => {
+		if (generating) return;
+
+		const text = $text.value.trim();
+
+		if (!text) return;
+
+		const blob = new Blob([text], {
+			type: "text/markdown",
+		});
+
+		const url = URL.createObjectURL(blob),
+			a = document.createElement("a");
+
+		a.style.display = "none";
+		a.href = url;
+		a.download = "story.md";
+
+		document.body.appendChild(a);
+
+		a.click();
+
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	});
+
 	$preview.addEventListener("click", () => {
 		if (uploading || generating) return;
+
+		setImage(null);
 
 		$image.click();
 	});
 
 	$image.addEventListener("change", async (event) => {
-		setImage(null);
-
 		const file = event.target.files[0];
 
 		if (!file) {
