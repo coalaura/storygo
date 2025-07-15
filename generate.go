@@ -126,6 +126,8 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 				chunk = chunk[:index]
 			}
 
+			chunk = CleanChunk(chunk)
+
 			w.Write([]byte(chunk))
 			flusher.Flush()
 
