@@ -424,6 +424,8 @@
 		$text.value = "";
 		$direction.value = "";
 
+		$tags.innerHTML = "";
+
 		setImage(null);
 
 		storeAll();

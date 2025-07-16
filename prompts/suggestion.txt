@@ -10,8 +10,16 @@ You are a creative writing partner and expert story consultant. Your task is to 
 {{if .Tags}}
 ### GENRE & STYLE KEYWORDS ###
 The following keywords define the overall genre, tone, and style of the story. Adhere to them closely.
-{{.Tags}}
 
+{{.Tags}}
+{{if .Direction}}
+### BRAINSTORMING FOCUS ###
+Use the following theme or idea as a creative constraint. Your suggestion must align with this focus.
+<focus>
+{{.Direction}}
+</focus>
+
+{{end}}
 {{end}}
 ### STORY BIBLE ###
 This is the overall context, character sheets, and world information.
