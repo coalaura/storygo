@@ -19,9 +19,7 @@ Visual sweep procedure (follow in your prose, do not list steps)
   g. Finish with lighting direction, shadow quality and any tiny details (logos, stitching, dust, scuffs).
 
 Integrating user notes
-  If the user supplied notes, visually confirm each one:
-    - If confirmed, integrate the fact plainly.
-    - If unconfirmed, include it with "(per user note, not visually verified)".
+  If a Notes section is provided, treat each note as additional ground truth and weave it naturally into your description whenever it does not visibly contradict the image; if a note conflicts with what you see, ignore the conflicting portion and trust the pixels.
 
 Self-check before finalising
   1. Contradictions: remove any claim that conflicts with visible pixels.
