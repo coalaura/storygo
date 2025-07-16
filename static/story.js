@@ -328,6 +328,7 @@
 
 		const form = new FormData();
 
+		form.append("details", prompt("Important details in the image (optional)", "") || "");
 		form.append("image", file);
 
 		let hash;

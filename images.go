@@ -33,32 +33,23 @@ var (
 )
 
 func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
-	reader, err := r.MultipartReader()
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("upload: failed to open multipart form")
+		log.Warning("upload: failed to parse multipart form")
 		log.WarningE(err)
 
 		return
 	}
 
-	part, err := reader.NextPart()
+	details := r.FormValue("details")
+
+	file, _, err := r.FormFile("image")
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("upload: failed to read multipart form")
-		log.WarningE(err)
-
-		return
-	}
-
-	defer part.Close()
-
-	if part.FormName() != "image" {
-		w.WriteHeader(http.StatusBadRequest)
-
-		log.Warning("upload: invalid multipart part")
+		log.Warning("upload: failed to read form file")
 		log.WarningE(err)
 
 		return
@@ -66,7 +57,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug("upload: decoding image")
 
-	input, _, err := image.Decode(part)
+	input, _, err := image.Decode(file)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -94,7 +85,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 
 	log.Debugf("upload: describing image (%s)\n", hash)
 
-	err = DescribeImage(hash, input)
+	err = DescribeImage(hash, input, details)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -135,7 +126,7 @@ func HandleImageServe(w http.ResponseWriter, r *http.Request) {
 	RespondWithImage(w, file)
 }
 
-func DescribeImage(hash string, img image.Image) error {
+func DescribeImage(hash string, img image.Image, details string) error {
 	processing.Lock(hash)
 	defer processing.Unlock(hash)
 
@@ -168,6 +159,12 @@ func DescribeImage(hash string, img image.Image) error {
 		return err
 	}
 
+	var suffix string
+
+	if details != "" {
+		suffix = fmt.Sprintf("\n\nNotes: \"%s\"", details)
+	}
+
 	request := openrouter.ChatCompletionRequest{
 		Model:       "qwen/qwen2.5-vl-72b-instruct",
 		Temperature: 0.15,
@@ -180,7 +177,7 @@ func DescribeImage(hash string, img image.Image) error {
 					Multi: []openrouter.ChatMessagePart{
 						{
 							Type: openrouter.ChatMessagePartTypeText,
-							Text: "Analyze this image and generate the (as detailed as possible) description based on the system instructions.",
+							Text: "Analyze this image and generate the (as detailed as possible) description based on the system instructions." + suffix,
 						},
 						{
 							Type: openrouter.ChatMessagePartTypeImageURL,
