@@ -82,7 +82,7 @@ button {
 	position: relative;
 }
 
-#image {
+input[type="file"] {
 	display: none;
 }
 
@@ -121,8 +121,10 @@ button {
 }
 
 #generate,
+#import,
 #export,
 #markdown,
+#delete,
 #preview::before,
 #preview.image {
 	background-position: center;
@@ -143,6 +145,12 @@ button {
 	background-image: url(icons/stop.svg);
 }
 
+#import {
+	width: 25px;
+	height: 25px;
+	background-image: url(icons/restore.svg);
+}
+
 #export {
 	width: 25px;
 	height: 25px;
@@ -153,6 +161,16 @@ button {
 	width: 25px;
 	height: 25px;
 	background-image: url(icons/markdown.svg);
+}
+
+#delete {
+	width: 25px;
+	height: 25px;
+	background-image: url(icons/delete.svg);
+}
+
+[disabled] {
+	cursor: not-allowed;
 }
 
 @keyframes rotating {

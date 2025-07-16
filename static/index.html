@@ -4,6 +4,8 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+		<link rel="shortcut icon" href="/favicon.ico" />
+
 		<title>storygo</title>
 
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,8 +34,10 @@
 					Story
 
 					<div class="buttons">
-						<button id="export"></button>
-						<button id="markdown"></button>
+						<button id="import" title="Import a story from a json safe-file"></button>
+						<button id="export" title="Export the story as json, for later re-import"></button>
+						<button id="markdown" title="Export the story as markdown"></button>
+						<button id="delete" title="Clear the entire story and the image"></button>
 					</div>
 				</h2>
 
@@ -48,8 +52,11 @@
 					<button id="generate"></button>
 				</div>
 			</div>
+
+			<input type="file" id="import-file" accept="application/json" />
 		</div>
 
+		<script src="dai.js"></script>
 		<script src="story.js"></script>
 	</body>
 </html>

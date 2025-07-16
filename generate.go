@@ -126,8 +126,6 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 				chunk = chunk[:index]
 			}
 
-			chunk = CleanChunk(chunk)
-
 			w.Write([]byte(chunk))
 			flusher.Flush()
 
@@ -160,13 +158,12 @@ func CreateGenerateRequest(generate *GenerateRequest) (openrouter.ChatCompletion
 }
 
 func BuildPrompt(generate *GenerateRequest) (string, error) {
-	generate.Text = strings.TrimSpace(generate.Text)
 	generate.Text = strings.ReplaceAll(generate.Text, "\r\n", "\n")
 
 	data := GenerateTemplate{
 		Context:   generate.Context,
 		Direction: generate.Direction,
-		Story:     generate.Text + "\n\n",
+		Story:     generate.Text,
 		Empty:     generate.Text == "",
 	}
 
@@ -193,12 +190,4 @@ func ParseTemplateOrPanic(text string) *template.Template {
 	log.MustPanic(err)
 
 	return tmpl
-}
-
-func CleanChunk(chunk string) string {
-	chunk = strings.ReplaceAll(chunk, "—\"", "-\"")
-
-	chunk = strings.ReplaceAll(chunk, "—", ", ")
-
-	return chunk
 }
