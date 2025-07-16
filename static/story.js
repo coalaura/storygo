@@ -17,7 +17,11 @@
 		$suggest = document.getElementById("suggest"),
 		$generate = document.getElementById("generate");
 
-	let uploading, generating, suggesting, image, mode = "generate";
+	let uploading,
+		generating,
+		suggesting,
+		image,
+		mode = "generate";
 
 	function setUploading(status) {
 		uploading = status;
@@ -146,7 +150,7 @@
 		text = text.trim().replace(/\r\n/g, "\n");
 
 		text = text.replace(/ {2,}/g, " ");
-		text = text.replace(/ \n/g, "\n");
+		text = text.replace(/ +\n/g, "\n");
 
 		return text;
 	}
@@ -224,7 +228,7 @@
 	function buildTags() {
 		const tags = [];
 
-		$tags.querySelectorAll(".tag").forEach(tag => {
+		$tags.querySelectorAll(".tag").forEach((tag) => {
 			tags.push(tag.textContent.trim());
 		});
 
@@ -321,7 +325,13 @@
 	$mode.addEventListener("click", () => {
 		if (generating || suggesting) return;
 
-		if ($text.value.trim() && !confirm("Are you sure you want to switch modes? This will clear the story field.")) return;
+		if (
+			$text.value.trim() &&
+			!confirm(
+				"Are you sure you want to switch modes? This will clear the story field.",
+			)
+		)
+			return;
 
 		$text.value = "";
 
@@ -352,7 +362,9 @@
 				ctx: clean($context.value),
 				txt: clean($text.value),
 				dir: clean($direction.value),
+				tgs: buildTags(),
 				img: image,
+				mde: mode || "generate",
 			}),
 		);
 	});
@@ -397,10 +409,24 @@
 					$direction.value = "";
 				}
 
+				if (json.tgs && Array.isArray(json.tgs)) {
+					for (const tag of json.tgs) {
+						appendTag(tag);
+					}
+				} else {
+					$tags.innerHTML = "";
+				}
+
 				if (json.img && typeof json.img === "string") {
 					setImage(json.img);
 				} else {
 					setImage(null);
+				}
+
+				if (json.mde && typeof json.mde === "string") {
+					setMode(json.mde);
+				} else {
+					setMode("generate");
 				}
 
 				storeAll();
