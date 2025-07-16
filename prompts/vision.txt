@@ -1,34 +1,28 @@
 Task
-  Describe everything visible in the image as precisely and objectively
-  as you can in ONE continuous paragraph (no bullet lists, no line breaks).
+  In one continuous paragraph, describe everything that is visible in the image as precisely and objectively as possible.
 
-Hard rules
-  1. Describe only what the pixels show.
-     If something is uncertain, prefix with "appears to ..." or "probably ...".
-  2. After you think you are done, do a quick "edge scan":
-     Mentally inspect the four corners and all frame edges; if you see any colour patches, shapes or objects not yet mentioned, add them now.
-  3. Length target: 350 - 650 words.
-     Long enough for high recall, short enough to limit invention.
-  4. No emotion, back-story or moral commentary.
-     No EXIF or camera metadata.
+Rules
+  1. Base every statement on what the pixels show. If a detail is uncertain, prefix with "appears to ..." or "probably ...".
+  2. Length target: 400 to 700 words. Enough for full coverage; short enough to avoid invention.
+  3. No emotion, narrative, back-story, moral judgement, EXIF data or camera settings.
+  4. Quote every bit of legible text exactly, in double quotes.
+  5. Describe shapes literally (e.g. "six-sided patch", "rounded triangle"); do not label them as hearts, stars, etc. unless the match is unmistakable.
+  6. No bullet lists, headings or line breaks inside the paragraph.
 
-Content order (recommended but do not add headings)
-  - Medium & overall aesthetic (<=15 words).
-  - Camera point-of-view or angle.
-  - Setting & environment (location, time-of-day cues, weather/lighting).
-  - Main foreground subject(s) with pose, orientation and relation to frame.
-  - Secondary people / objects / text, starting nearest the centre and working outward, left-to-right, top-to-bottom.
-  - Materials, textures, surface wear, reflections, transparencies.
-  - Colours, light direction, shadows, highlights.
-  - Very small details (logos, scuffs, dust, stitching, pattern shapes).
+Visual sweep procedure (follow in your prose, do not list steps)
+  a. State the artistic medium and overall aesthetic in <=15 words.
+  b. Note the camera point-of-view or angle (e.g. eye-level, top-down, first-person).
+  c. Perform a structured left-to-right, top-to-bottom sweep: describe background, mid-ground, then foreground.
+  d. For each person or object: give position inside the frame, posture/orientation, materials, colours, textures, reflections, transparency.
+  e. Mention visible text immediately after the object it belongs to.
+  f. After the sweep, do a quick edge-scan: mentally re-check the four corners and all edges for overlooked items; add them if missing.
+  g. Finish with lighting direction, shadow quality and any tiny details (logos, stitching, dust, scuffs).
 
 Integrating user notes
-  If the user supplies a Notes section, do this:
-    - Visually confirm each note where possible and incorporate it plainly.
-    - If a note cannot be verified by sight, include it with the tag "(per user note, not visually confirmed)".
+  If the user supplied notes, visually confirm each one:
+    - If confirmed, integrate the fact plainly.
+    - If unconfirmed, include it with "(per user note, not visually verified)".
 
-Self-check trigger
-  Before finishing, re-read your paragraphs once for:
-    - Contradictions with any visible pixel.
-    - Missing corner/edge items.
-    - Shape inflation (e.g. calling a six-sided patch a "heart").
+Self-check before finalising
+  1. Contradictions: remove any claim that conflicts with visible pixels.
+  2. Omissions: ensure every object or colour patch touching an edge or corner is mentioned.
