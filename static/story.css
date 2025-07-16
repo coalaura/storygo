@@ -5,15 +5,15 @@
 html,
 body {
 	font-size: 16px;
+	font-family: "Lexend", sans-serif;
 	color: #cad3f5;
 	background: #181926;
-	font-family: "Lexend", sans-serif;
 }
 
 #page {
 	position: absolute;
-	left: 50%;
 	top: 50%;
+	left: 50%;
 	transform: translate(-50%, -50%);
 	display: flex;
 	flex-direction: column;
@@ -31,7 +31,6 @@ h2 {
 
 textarea,
 button {
-	display: block;
 	font-family: inherit;
 	font-size: inherit;
 	color: inherit;
@@ -40,11 +39,10 @@ button {
 }
 
 textarea {
-	display: block;
 	width: 100%;
+	height: 100%;
 	padding: 4px 6px;
 	resize: none;
-	height: 100%;
 	border: 1px solid #5b6078;
 	background: #24273a;
 }
@@ -52,6 +50,14 @@ textarea {
 button {
 	cursor: pointer;
 	border: none;
+}
+
+[disabled] {
+	cursor: not-allowed;
+}
+
+input[type="file"] {
+	display: none;
 }
 
 .buttons,
@@ -82,32 +88,27 @@ button {
 	position: relative;
 }
 
-input[type="file"] {
-	display: none;
-}
-
 #preview {
+	position: relative;
+	cursor: pointer;
 	width: 180px;
 	height: 100%;
 	border: 1px solid #5b6078;
 	background: #24273a;
 }
 
-#preview {
-	position: relative;
-	cursor: pointer;
-}
-
 #preview::before {
 	content: "";
-	display: block;
 	position: absolute;
-	width: 30px;
-	height: 30px;
 	top: 50%;
 	left: 50%;
+	width: 30px;
+	height: 30px;
 	transform: translate(-50%, -50%);
 	background-image: url(icons/upload.svg);
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
 	pointer-events: none;
 }
 
@@ -143,41 +144,37 @@ input[type="file"] {
 	background-image: url(icons/send.svg);
 }
 
-.generating #generate {
-	background-image: url(icons/stop.svg);
-}
-
 #suggest {
 	bottom: 44px;
 	background-image: url(icons/thought.svg);
 }
 
-#import {
+.generating #generate {
+	background-image: url(icons/stop.svg);
+}
+
+#import,
+#export,
+#markdown,
+#delete {
 	width: 25px;
 	height: 25px;
+}
+
+#import {
 	background-image: url(icons/restore.svg);
 }
 
 #export {
-	width: 25px;
-	height: 25px;
 	background-image: url(icons/export.svg);
 }
 
 #markdown {
-	width: 25px;
-	height: 25px;
 	background-image: url(icons/markdown.svg);
 }
 
 #delete {
-	width: 25px;
-	height: 25px;
 	background-image: url(icons/delete.svg);
-}
-
-[disabled] {
-	cursor: not-allowed;
 }
 
 @keyframes rotating {

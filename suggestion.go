@@ -49,7 +49,9 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("suggestion: finished completion")
 
-	RespondWithText(w, 200, completion.Choices[0].Message.Content.Text)
+	cleaned := strings.ReplaceAll(completion.Choices[0].Message.Content.Text, "\n\n", "\n")
+
+	RespondWithText(w, 200, cleaned)
 }
 
 func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
