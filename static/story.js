@@ -142,10 +142,41 @@
 		return value;
 	}
 
+	async function stream(url, options, callback, finished) {
+		try {
+			const response = await fetch(url, options);
+
+			if (!response.ok) {
+				throw new Error(`Stream failed with status ${response.status}`);
+			}
+
+			const reader = response.body.getReader(),
+				decoder = new TextDecoder();
+
+			while (true) {
+				const { value, done } = await reader.read();
+
+				if (done) break;
+
+				const chunk = decoder.decode(value, {
+					stream: true,
+				});
+
+				callback(chunk);
+			}
+		} catch (err) {
+			if (err.name !== "AbortError") {
+				alert(`${err}`);
+			}
+		} finally {
+			finished();
+		}
+	}
+
 	function buildPayload(inline) {
 		const payload = {
 			context: clean($context.value),
-			text: clean($text.value) + (inline ? " " : "\n\n"),
+			text: clean($text.value),
 			direction: clean($direction.value),
 			image: image,
 		};
@@ -154,6 +185,10 @@
 			alert("Missing context.");
 
 			return false;
+		}
+
+		if (payload.text) {
+			payload.text += inline ? " " : "\n\n";
 		}
 
 		$context.value = payload.context;
@@ -186,52 +221,34 @@
 
 		storeAll();
 
-		try {
-			const response = await fetch("/generate", {
+		stream(
+			"/generate",
+			{
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify(payload),
 				signal: controller.signal,
-			});
-
-			if (!response.ok) {
-				throw new Error(`Generation failed with status ${response.status}`);
-			}
-
-			const reader = response.body.getReader(),
-				decoder = new TextDecoder();
-
-			while (true) {
-				const { value, done } = await reader.read();
-
-				if (done) break;
-
-				const chunk = decoder.decode(value, {
-					stream: true,
-				});
-
+			},
+			(chunk) => {
 				payload.text += chunk;
 
 				$text.value = payload.text;
 				$text.scrollTop = $text.scrollHeight;
 
 				store("text", payload.text);
-			}
-		} catch (err) {
-			if (err.name !== "AbortError") {
-				alert(`${err}`);
-			}
-		} finally {
-			setGenerating(false);
+			},
+			() => {
+				setGenerating(false);
 
-			payload.text = clean(dai.clean(payload.text));
+				payload.text = clean(dai.clean(payload.text));
 
-			$text.value = payload.text;
+				$text.value = payload.text;
 
-			store("text", payload.text);
-		}
+				store("text", payload.text);
+			},
+		);
 	}
 
 	$generate.addEventListener("click", async () => {
@@ -321,7 +338,12 @@
 	$delete.addEventListener("click", () => {
 		if (uploading || generating || suggesting) return;
 
-		if (!confirm("Are you sure you want to clear the story, context, directions and image?")) return;
+		if (
+			!confirm(
+				"Are you sure you want to clear the story, context, directions and image?",
+			)
+		)
+			return;
 
 		$context.value = "";
 		$text.value = "";
@@ -351,7 +373,10 @@
 
 		const form = new FormData();
 
-		form.append("details", prompt("Important details in the image (optional)", "") || "");
+		form.append(
+			"details",
+			prompt("Important details in the image (optional)", "") || "",
+		);
 		form.append("image", file);
 
 		let hash;

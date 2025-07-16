@@ -4,11 +4,8 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
-	"errors"
-	"io"
 	"net/http"
 	"strings"
-	"text/template"
 
 	"github.com/revrost/go-openrouter"
 )
@@ -45,17 +42,8 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
-
-		log.Warning("generation: failed to create flusher")
-
-		return
-	}
-
 	request, err := CreateGenerationRequest(&generation)
-	if !ok {
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
 		log.Warning("generation: failed to create request")
@@ -80,58 +68,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("generation: finished generation")
 
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	ch := make(chan string)
-
-	go func() {
-		defer close(ch)
-
-		for {
-			response, err := stream.Recv()
-			if err != nil {
-				if errors.Is(err, io.EOF) {
-					return
-				}
-
-				ch <- err.Error()
-
-				return
-			}
-
-			if len(response.Choices) > 0 {
-				ch <- response.Choices[0].Delta.Content
-			}
-		}
-	}()
-
-	var newline bool
-
-	for {
-		select {
-		case <-ctx.Done():
-			log.Debug("generation: client closed connection")
-
-			return
-		case chunk, ok := <-ch:
-			if !ok {
-				return
-			}
-
-			if index := strings.Index(chunk, "\n"); index != -1 {
-				chunk = chunk[:index]
-			}
-
-			w.Write([]byte(chunk))
-			flusher.Flush()
-
-			if newline {
-				return
-			}
-		}
-	}
+	RespondWithStream(w, ctx, stream)
 }
 
 func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
@@ -181,11 +118,4 @@ func BuildGenerationPrompt(generation *GenerationRequest) (string, error) {
 	}
 
 	return prompt.String(), nil
-}
-
-func ParseTemplateOrPanic(name, text string) *template.Template {
-	tmpl, err := template.New(name).Parse(PromptGeneration)
-	log.MustPanic(err)
-
-	return tmpl
 }
