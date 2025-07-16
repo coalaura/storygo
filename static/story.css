@@ -29,6 +29,7 @@ h2 {
 	font-size: 20px;
 }
 
+#overview,
 textarea,
 button {
 	font-family: inherit;
@@ -38,6 +39,7 @@ button {
 	background: transparent;
 }
 
+#overview,
 textarea {
 	width: 100%;
 	height: 100%;
@@ -123,6 +125,7 @@ input[type="file"] {
 
 #suggest,
 #generate,
+#mode,
 #import,
 #export,
 #markdown,
@@ -153,12 +156,21 @@ input[type="file"] {
 	background-image: url(icons/stop.svg);
 }
 
+#mode.overview {
+	background-image: url(icons/newspaper.svg);
+}
+
+#mode,
 #import,
 #export,
 #markdown,
 #delete {
 	width: 25px;
 	height: 25px;
+}
+
+#mode {
+	background-image: url(icons/book.svg);
 }
 
 #import {

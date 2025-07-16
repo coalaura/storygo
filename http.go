@@ -24,7 +24,7 @@ func RespondWithImage(w http.ResponseWriter, file io.Reader) {
 	io.Copy(w, file)
 }
 
-func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openrouter.ChatCompletionStream) {
+func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openrouter.ChatCompletionStream, stop string) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -61,7 +61,7 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 		}
 	}()
 
-	var newline bool
+	var finished bool
 
 	for {
 		select {
@@ -74,14 +74,16 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 				return
 			}
 
-			if index := strings.Index(chunk, "\n"); index != -1 {
-				chunk = chunk[:index]
+			if stop != "" {
+				if index := strings.Index(chunk, stop); index != -1 {
+					chunk = chunk[:index]
+				}
 			}
 
 			w.Write([]byte(chunk))
 			flusher.Flush()
 
-			if newline {
+			if finished {
 				return
 			}
 		}

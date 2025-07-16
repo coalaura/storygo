@@ -27,6 +27,8 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	suggestion.Clean(true)
+
 	request, err := CreateSuggestionRequest(&suggestion)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -74,9 +76,6 @@ func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatComp
 }
 
 func BuildSuggestionPrompt(suggestion *GenerationRequest) (string, error) {
-	suggestion.Text = strings.TrimSpace(suggestion.Text)
-	suggestion.Text = strings.ReplaceAll(suggestion.Text, "\r\n", "\n")
-
 	data := GenerationTemplate{
 		Context: suggestion.Context,
 		Story:   suggestion.Text,

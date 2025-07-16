@@ -9,11 +9,13 @@
 		$markdown = document.getElementById("markdown"),
 		$delete = document.getElementById("delete"),
 		$text = document.getElementById("text"),
+		$mode = document.getElementById("mode"),
+		$modeName = document.getElementById("mode-name"),
 		$direction = document.getElementById("direction"),
 		$suggest = document.getElementById("suggest"),
 		$generate = document.getElementById("generate");
 
-	let uploading, generating, suggesting, image;
+	let uploading, generating, suggesting, image, mode = "generate";
 
 	function setUploading(status) {
 		uploading = status;
@@ -85,6 +87,20 @@
 		} else {
 			$direction.removeAttribute("disabled");
 		}
+	}
+
+	function setMode(state) {
+		mode = state || "generate";
+
+		if (mode === "generate") {
+			$modeName.textContent = "Story";
+			$mode.classList.remove("overview");
+		} else {
+			$modeName.textContent = "Overview";
+			$mode.classList.add("overview");
+		}
+
+		store("mode", mode);
 	}
 
 	function download(name, type, data) {
@@ -209,6 +225,10 @@
 			return;
 		}
 
+		if (mode === "overview") {
+			$text.value = "";
+		}
+
 		const payload = buildPayload(inline);
 
 		if (!payload) {
@@ -222,7 +242,7 @@
 		storeAll();
 
 		stream(
-			"/generate",
+			`/${mode}`,
 			{
 				method: "POST",
 				headers: {
@@ -253,6 +273,20 @@
 
 	$generate.addEventListener("click", async () => {
 		generate(false);
+	});
+
+	$mode.addEventListener("click", () => {
+		if (generating || suggesting) return;
+
+		if ($text.value.trim() && !confirm("Are you sure you want to switch modes? This will clear the story field.")) return;
+
+		$text.value = "";
+
+		if (mode === "overview") {
+			setMode("generate");
+		} else {
+			setMode("overview");
+		}
 	});
 
 	$markdown.addEventListener("click", () => {
@@ -508,4 +542,5 @@
 	$text.scrollTop = $text.scrollHeight;
 
 	setImage(load("image", null));
+	setMode(load("mode", null));
 })();

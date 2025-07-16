@@ -5,25 +5,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/revrost/go-openrouter"
 )
-
-type GenerationRequest struct {
-	Text      string  `json:"text"`
-	Context   string  `json:"context"`
-	Direction string  `json:"direction"`
-	Image     *string `json:"image"`
-}
-
-type GenerationTemplate struct {
-	Context   string
-	Direction string
-	Story     string
-	Image     string
-	Empty     bool
-}
 
 var (
 	//go:embed prompts/generation.txt
@@ -41,6 +25,8 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	generation.Clean(false)
 
 	request, err := CreateGenerationRequest(&generation)
 	if err != nil {
@@ -68,7 +54,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("generation: finished generation")
 
-	RespondWithStream(w, ctx, stream)
+	RespondWithStream(w, ctx, stream, "\n")
 }
 
 func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
@@ -93,8 +79,6 @@ func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatComp
 }
 
 func BuildGenerationPrompt(generation *GenerationRequest) (string, error) {
-	generation.Text = strings.ReplaceAll(generation.Text, "\r\n", "\n")
-
 	data := GenerationTemplate{
 		Context:   generation.Context,
 		Direction: generation.Direction,

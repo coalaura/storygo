@@ -19,30 +19,28 @@ This is the overall context, character sheets, and world information. Use it for
 <world_bible>
 {{.Context}}
 </world_bible>
-{{if .Image}}
 
+{{if .Image}}
 <visual_context>
 This is a detailed text description of a key visual element. Use this to enrich your description.
 {{.Image}}
 </visual_context>
-{{end}}
 
-### STORY SO FAR ###
-This is the story that has been written up to this point.
+{{end}}
 <story_so_far>
 {{.Story}}
 </story_so_far>
 
-### YOUR IMMEDIATE TASK ###
 {{if .Direction}}
 **IMPORTANT:** Your new paragraphs MUST be a creative interpretation of the following user direction. Do not treat the direction as something that has already happened; your writing should make it happen.
 <user_direction>
 {{.Direction}}
 </user_direction>
+
 {{else}}
 No specific direction was given. Continue the story naturally based on the established plot, character motivations, and tone.
-{{end}}
 
+{{end}}
 ### FINAL CHECK & REMINDER ###
 - **Pacing is crucial:** Do not rush to fulfill the user's direction. Your primary task is to write the *bridge* that connects the end of the previous text to the events in the direction. Take your time.
 - **Continuity is mandatory:** Your first sentence MUST flow directly from the last sentence of the "STORY SO FAR". There should be no time skip or jump unless your writing explicitly describes it.

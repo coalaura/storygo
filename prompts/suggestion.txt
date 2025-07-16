@@ -12,14 +12,14 @@ This is the overall context, character sheets, and world information.
 <world_bible>
 {{.Context}}
 </world_bible>
-{{if .Image}}
 
+{{if .Image}}
 <visual_context>
 This is a detailed text description of a key visual element. Use it to inspire visually grounded ideas.
 {{.Image}}
 </visual_context>
-{{end}}
 
+{{end}}
 ### STORY SO FAR ###
 This is the story that has been written up to this point. Analyze it to suggest logical and exciting next steps.
 <story_so_far>
