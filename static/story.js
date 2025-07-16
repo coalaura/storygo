@@ -10,9 +10,10 @@
 		$delete = document.getElementById("delete"),
 		$text = document.getElementById("text"),
 		$direction = document.getElementById("direction"),
+		$suggest = document.getElementById("suggest"),
 		$generate = document.getElementById("generate");
 
-	let uploading, generating, image;
+	let uploading, generating, suggesting, image;
 
 	function setUploading(status) {
 		uploading = status;
@@ -76,6 +77,16 @@
 		}
 	}
 
+	function setSuggesting(status) {
+		suggesting = status;
+
+		if (suggesting) {
+			$direction.setAttribute("disabled", "true");
+		} else {
+			$direction.removeAttribute("disabled");
+		}
+	}
+
 	function download(name, type, data) {
 		const blob = new Blob([data], {
 			type: type,
@@ -97,8 +108,10 @@
 	}
 
 	function clean(text) {
-		text = text.trim();
+		text = text.trim().replace(/\r\n/g, "\n");
+
 		text = text.replace(/ {2,}/g, " ");
+		text = text.replace(/ \n/g, "\n");
 
 		return text;
 	}
@@ -129,17 +142,7 @@
 		return value;
 	}
 
-	let controller;
-
-	async function generate(inline) {
-		if (uploading) return;
-
-		if (generating) {
-			controller?.abort?.();
-
-			return;
-		}
-
+	function buildPayload(inline) {
 		const payload = {
 			context: clean($context.value),
 			text: clean($text.value) + (inline ? " " : "\n\n"),
@@ -150,16 +153,36 @@
 		if (!payload.context) {
 			alert("Missing context.");
 
+			return false;
+		}
+
+		$context.value = payload.context;
+		$text.value = payload.text;
+		$direction.value = payload.direction;
+
+		return payload;
+	}
+
+	let controller;
+
+	async function generate(inline) {
+		if (uploading || suggesting) return;
+
+		if (generating) {
+			controller?.abort?.();
+
+			return;
+		}
+
+		const payload = buildPayload(inline);
+
+		if (!payload) {
 			return;
 		}
 
 		setGenerating(true);
 
 		controller = new AbortController();
-
-		$context.value = payload.context;
-		$text.value = payload.text;
-		$direction.value = payload.direction;
 
 		storeAll();
 
@@ -226,7 +249,7 @@
 	});
 
 	$export.addEventListener("click", () => {
-		if (generating) return;
+		if (generating || suggesting) return;
 
 		download(
 			"save-file.json",
@@ -241,7 +264,7 @@
 	});
 
 	$import.addEventListener("click", () => {
-		if (generating || uploading) return;
+		if (generating || uploading || suggesting) return;
 
 		$importFile.click();
 	});
@@ -296,7 +319,7 @@
 	});
 
 	$delete.addEventListener("click", () => {
-		if (uploading || generating) return;
+		if (uploading || generating || suggesting) return;
 
 		if (!confirm("Are you sure you want to clear the story, context, directions and image?")) return;
 
@@ -310,7 +333,7 @@
 	});
 
 	$preview.addEventListener("click", () => {
-		if (uploading || generating) return;
+		if (uploading || generating || suggesting) return;
 
 		setImage(null);
 
@@ -353,6 +376,56 @@
 		}
 
 		setImage(hash);
+	});
+
+	$suggest.addEventListener("click", async () => {
+		if (uploading || generating | suggesting) return;
+
+		const payload = buildPayload(false);
+
+		if (!payload) {
+			return;
+		}
+
+		setSuggesting(true);
+
+		let direction = payload.direction;
+
+		$direction.value += `${direction ? "\n\n" : ""}suggesting...`;
+
+		try {
+			const response = await fetch("/suggest", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+			});
+
+			if (!response.ok) {
+				throw new Error(`Suggestion failed with status ${response.status}`);
+			}
+
+			const text = await response.text();
+
+			if (direction) {
+				direction += "\n\n";
+			}
+
+			direction += text;
+		} catch (err) {
+			if (err.name !== "AbortError") {
+				alert(`${err}`);
+			}
+		} finally {
+			setSuggesting(false);
+
+			direction = clean(dai.clean(direction));
+
+			$direction.value = direction;
+
+			store("direction", direction);
+		}
 	});
 
 	$context.addEventListener("change", () => {

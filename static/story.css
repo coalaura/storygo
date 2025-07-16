@@ -120,6 +120,7 @@ input[type="file"] {
 	display: none;
 }
 
+#suggest,
 #generate,
 #import,
 #export,
@@ -132,6 +133,7 @@ input[type="file"] {
 	background-repeat: no-repeat;
 }
 
+#suggest,
 #generate {
 	position: absolute;
 	bottom: 8px;
@@ -143,6 +145,11 @@ input[type="file"] {
 
 .generating #generate {
 	background-image: url(icons/stop.svg);
+}
+
+#suggest {
+	bottom: 44px;
+	background-image: url(icons/thought.svg);
 }
 
 #import {

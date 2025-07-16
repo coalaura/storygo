@@ -13,14 +13,14 @@ import (
 	"github.com/revrost/go-openrouter"
 )
 
-type GenerateRequest struct {
+type GenerationRequest struct {
 	Text      string  `json:"text"`
 	Context   string  `json:"context"`
 	Direction string  `json:"direction"`
 	Image     *string `json:"image"`
 }
 
-type GenerateTemplate struct {
+type GenerationTemplate struct {
 	Context   string
 	Direction string
 	Story     string
@@ -31,17 +31,15 @@ type GenerateTemplate struct {
 var (
 	//go:embed prompts/generation.txt
 	PromptGeneration string
-
-	GenerationTemplate = ParseTemplateOrPanic(PromptGeneration)
 )
 
 func HandleGeneration(w http.ResponseWriter, r *http.Request) {
-	var generate GenerateRequest
+	var generation GenerationRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&generate); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&generation); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("generate: failed to decode request")
+		log.Warning("generation: failed to decode request")
 		log.WarningE(err)
 
 		return
@@ -51,16 +49,16 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generate: failed to create flusher")
+		log.Warning("generation: failed to create flusher")
 
 		return
 	}
 
-	request, err := CreateGenerateRequest(&generate)
+	request, err := CreateGenerationRequest(&generation)
 	if !ok {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generate: failed to create request")
+		log.Warning("generation: failed to create request")
 		log.WarningE(err)
 
 		return
@@ -72,7 +70,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generate: failed to start stream")
+		log.Warning("generation: failed to start stream")
 		log.WarningE(err)
 
 		return
@@ -80,7 +78,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 	defer stream.Close()
 
-	defer log.Debug("generate: finished generation")
+	defer log.Debug("generation: finished generation")
 
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -114,7 +112,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Debug("generate: client closed connection")
+			log.Debug("generation: client closed connection")
 
 			return
 		case chunk, ok := <-ch:
@@ -136,7 +134,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateGenerateRequest(generate *GenerateRequest) (openrouter.ChatCompletionRequest, error) {
+func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
 	request := openrouter.ChatCompletionRequest{
 		Model:       "deepseek/deepseek-chat-v3-0324",
 		Temperature: 0.8,
@@ -145,7 +143,7 @@ func CreateGenerateRequest(generate *GenerateRequest) (openrouter.ChatCompletion
 		Stream:      true,
 	}
 
-	prompt, err := BuildPrompt(generate)
+	prompt, err := BuildGenerationPrompt(generation)
 	if err != nil {
 		return request, err
 	}
@@ -157,18 +155,18 @@ func CreateGenerateRequest(generate *GenerateRequest) (openrouter.ChatCompletion
 	return request, nil
 }
 
-func BuildPrompt(generate *GenerateRequest) (string, error) {
-	generate.Text = strings.ReplaceAll(generate.Text, "\r\n", "\n")
+func BuildGenerationPrompt(generation *GenerationRequest) (string, error) {
+	generation.Text = strings.ReplaceAll(generation.Text, "\r\n", "\n")
 
-	data := GenerateTemplate{
-		Context:   generate.Context,
-		Direction: generate.Direction,
-		Story:     generate.Text,
-		Empty:     generate.Text == "",
+	data := GenerationTemplate{
+		Context:   generation.Context,
+		Direction: generation.Direction,
+		Story:     generation.Text,
+		Empty:     generation.Text == "",
 	}
 
-	if generate.Image != nil {
-		description, err := GetImageDescription(*generate.Image)
+	if generation.Image != nil {
+		description, err := GetImageDescription(*generation.Image)
 		if err != nil {
 			return "", err
 		}
@@ -178,15 +176,15 @@ func BuildPrompt(generate *GenerateRequest) (string, error) {
 
 	var prompt bytes.Buffer
 
-	if err := GenerationTemplate.Execute(&prompt, data); err != nil {
+	if err := GenerationTmpl.Execute(&prompt, data); err != nil {
 		return "", err
 	}
 
 	return prompt.String(), nil
 }
 
-func ParseTemplateOrPanic(text string) *template.Template {
-	tmpl, err := template.New("system_prompt").Parse(PromptGeneration)
+func ParseTemplateOrPanic(name, text string) *template.Template {
+	tmpl, err := template.New(name).Parse(PromptGeneration)
 	log.MustPanic(err)
 
 	return tmpl

@@ -19,13 +19,13 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
-	// r.Use(adapter.Middleware(log))
 
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/*", http.StripPrefix("/", fs))
 
 	r.Get("/image/{hash}", HandleImageServe)
 	r.Post("/upload", HandleImageUpload)
+	r.Post("/suggest", HandleSuggestion)
 	r.Post("/generate", HandleGeneration)
 
 	time.AfterFunc(time.Second, open)
