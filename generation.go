@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/json"
 	"net/http"
@@ -66,7 +65,7 @@ func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatComp
 		Stream:      true,
 	}
 
-	prompt, err := BuildGenerationPrompt(generation)
+	prompt, err := BuildPrompt(GenerationTmpl, generation)
 	if err != nil {
 		return request, err
 	}
@@ -76,30 +75,4 @@ func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatComp
 	}
 
 	return request, nil
-}
-
-func BuildGenerationPrompt(generation *GenerationRequest) (string, error) {
-	data := GenerationTemplate{
-		Context:   generation.Context,
-		Direction: generation.Direction,
-		Story:     generation.Text,
-		Empty:     generation.Text == "",
-	}
-
-	if generation.Image != nil {
-		description, err := GetImageDescription(*generation.Image)
-		if err != nil {
-			return "", err
-		}
-
-		data.Image = description
-	}
-
-	var prompt bytes.Buffer
-
-	if err := GenerationTmpl.Execute(&prompt, data); err != nil {
-		return "", err
-	}
-
-	return prompt.String(), nil
 }

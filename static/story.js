@@ -3,6 +3,8 @@
 		$context = document.getElementById("context"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
+		$tag = document.getElementById("tag"),
+		$tags = document.getElementById("tags"),
 		$import = document.getElementById("import"),
 		$importFile = document.getElementById("import-file"),
 		$export = document.getElementById("export"),
@@ -103,6 +105,21 @@
 		store("mode", mode);
 	}
 
+	function appendTag(content) {
+		const tag = document.createElement("div");
+
+		tag.textContent = content;
+		tag.classList.add("tag");
+
+		tag.addEventListener("click", () => {
+			tag.remove();
+
+			store("tags", buildTags());
+		});
+
+		$tags.appendChild(tag);
+	}
+
 	function download(name, type, data) {
 		const blob = new Blob([data], {
 			type: type,
@@ -136,6 +153,7 @@
 		store("context", clean($context.value));
 		store("text", clean($text.value));
 		store("direction", clean($direction.value));
+		store("tags", buildTags());
 	}
 
 	function store(name, value) {
@@ -143,6 +161,10 @@
 			localStorage.removeItem(name);
 
 			return;
+		}
+
+		if (typeof value === "object") {
+			value = JSON.stringify(value);
 		}
 
 		localStorage.setItem(name, value);
@@ -153,6 +175,14 @@
 
 		if (!value) {
 			return def;
+		}
+
+		if (value?.match?.(/^[{[]/m)) {
+			try {
+				return JSON.parse(value);
+			} catch {}
+
+			return null;
 		}
 
 		return value;
@@ -189,11 +219,22 @@
 		}
 	}
 
+	function buildTags() {
+		const tags = [];
+
+		$tags.querySelectorAll(".tag").forEach(tag => {
+			tags.push(tag.textContent.trim());
+		});
+
+		return tags;
+	}
+
 	function buildPayload(inline) {
 		const payload = {
 			context: clean($context.value),
 			text: clean($text.value),
 			direction: clean($direction.value),
+			tags: buildTags(),
 			image: image,
 		};
 
@@ -487,6 +528,24 @@
 		}
 	});
 
+	$tag.addEventListener("keydown", (event) => {
+		if (event.key !== "Enter") {
+			return;
+		}
+
+		event.preventDefault();
+
+		const content = $tag.value.trim();
+
+		if (!content) return;
+
+		appendTag(content);
+
+		$tag.value = "";
+
+		store("tags", buildTags());
+	});
+
 	$context.addEventListener("change", () => {
 		store("context", clean($context.value));
 	});
@@ -543,4 +602,12 @@
 
 	setImage(load("image", null));
 	setMode(load("mode", null));
+
+	const tags = load("tags", null);
+
+	if (tags && Array.isArray(tags)) {
+		for (const tag of tags) {
+			appendTag(tag);
+		}
+	}
 })();

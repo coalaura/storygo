@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/json"
 	"net/http"
@@ -63,7 +62,7 @@ func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatComp
 		MaxTokens:   256,
 	}
 
-	prompt, err := BuildSuggestionPrompt(suggestion)
+	prompt, err := BuildPrompt(SuggestionTmpl, suggestion)
 	if err != nil {
 		return request, err
 	}
@@ -73,28 +72,4 @@ func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatComp
 	}
 
 	return request, nil
-}
-
-func BuildSuggestionPrompt(suggestion *GenerationRequest) (string, error) {
-	data := GenerationTemplate{
-		Context: suggestion.Context,
-		Story:   suggestion.Text,
-	}
-
-	if suggestion.Image != nil {
-		description, err := GetImageDescription(*suggestion.Image)
-		if err != nil {
-			return "", err
-		}
-
-		data.Image = description
-	}
-
-	var prompt bytes.Buffer
-
-	if err := SuggestionTmpl.Execute(&prompt, data); err != nil {
-		return "", err
-	}
-
-	return prompt.String(), nil
 }

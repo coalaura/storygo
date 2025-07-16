@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
 	"encoding/json"
 	"net/http"
@@ -65,7 +64,7 @@ func CreateOverviewRequest(overview *GenerationRequest) (openrouter.ChatCompleti
 		Stream:      true,
 	}
 
-	prompt, err := BuildOverviewPrompt(overview)
+	prompt, err := BuildPrompt(OverviewTmpl, overview)
 	if err != nil {
 		return request, err
 	}
@@ -75,28 +74,4 @@ func CreateOverviewRequest(overview *GenerationRequest) (openrouter.ChatCompleti
 	}
 
 	return request, nil
-}
-
-func BuildOverviewPrompt(overview *GenerationRequest) (string, error) {
-	data := GenerationTemplate{
-		Context:   overview.Context,
-		Direction: overview.Direction,
-	}
-
-	if overview.Image != nil {
-		description, err := GetImageDescription(*overview.Image)
-		if err != nil {
-			return "", err
-		}
-
-		data.Image = description
-	}
-
-	var prompt bytes.Buffer
-
-	if err := OverviewTmpl.Execute(&prompt, data); err != nil {
-		return "", err
-	}
-
-	return prompt.String(), nil
 }

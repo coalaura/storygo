@@ -7,6 +7,12 @@ You are a creative writing partner and expert story consultant. Your task is to 
 - The ideas should be varied: suggest plot twists, character-driven moments, new conflicts, or mysterious discoveries.
 - Do NOT include any other text, explanation, or preamble. Your response must ONLY be the numbered list.
 
+{{if .Tags}}
+### GENRE & STYLE KEYWORDS ###
+The following keywords define the overall genre, tone, and style of the story. Adhere to them closely.
+{{.Tags}}
+
+{{end}}
 ### STORY BIBLE ###
 This is the overall context, character sheets, and world information.
 <world_bible>
