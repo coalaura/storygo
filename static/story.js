@@ -96,9 +96,11 @@
 
 		if (mode === "generate") {
 			$modeName.textContent = "Story";
+			$mode.title = "Switch to story outline/overview mode";
 			$mode.classList.remove("overview");
 		} else {
 			$modeName.textContent = "Overview";
+			$mode.title = "Switch to detailed story writing mode";
 			$mode.classList.add("overview");
 		}
 
