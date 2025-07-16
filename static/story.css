@@ -135,7 +135,7 @@ input[type="text"] {
 	width: 240px;
 }
 
-.tag {
+#tags .tag {
 	display: flex;
 	gap: 4px;
 	color: #181926;
@@ -145,7 +145,7 @@ input[type="text"] {
 	border-radius: 4px;
 }
 
-.tag:hover::before {
+#tags .tag:hover::before {
 	content: "✕";
 	font-size: 10px;
 	position: relative;
