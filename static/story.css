@@ -147,9 +147,9 @@ input[type="text"] {
 
 .tag:hover::before {
 	content: "✕";
-	font-size: 12px;
+	font-size: 10px;
 	position: relative;
-	top: 2px;
+	top: 3px;
 	font-weight: 900;
 }
 
