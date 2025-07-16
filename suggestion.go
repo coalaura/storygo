@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/revrost/go-openrouter"
@@ -68,8 +67,6 @@ func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatComp
 	request.Messages = []openrouter.ChatCompletionMessage{
 		openrouter.SystemMessage(prompt),
 	}
-
-	os.WriteFile("test.txt", []byte(prompt), 0755)
 
 	return request, nil
 }
