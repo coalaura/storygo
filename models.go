@@ -27,15 +27,15 @@ var (
 		// Current best reasoning model with excellent creative capabilities
 		NewModel("openai/o3", "OpenAI o3", false, true, []string{"literary", "moderated"}),
 		// Elon's latest flagship model - excellent at creative and reasoning tasks
-		NewModel("xai/grok-4", "Grok 4", false, true, []string{"unmoderated", "creative"}),
+		NewModel("x-ai/grok-4", "Grok 4", false, true, []string{"unmoderated", "creative"}),
 		// Anthropic's flagship with superior literary style and safety
-		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", true, true, []string{"literary", "verbose"}),
+		NewModel("anthropic/claude-opus-4", "Claude 4 Opus", false, true, []string{"literary", "verbose"}),
 		// Balanced Claude model with great creative writing capabilities
-		NewModel("anthropic/claude-4-sonnet", "Claude 4 Sonnet", true, true, []string{"creative", "structured"}),
+		NewModel("anthropic/claude-sonnet-4", "Claude 4 Sonnet", false, true, []string{"creative", "structured"}),
 		// Strong unmoderated model excellent for character-driven stories
 		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
 		// China's breakout model with exceptional creative writing performance
-		NewModel("moonshot/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
+		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
 		// OpenAI's balanced flagship model
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
 		// Cost-effective with strong performance
@@ -64,10 +64,10 @@ func (m *Model) SetReasoning(request *openrouter.ChatCompletionRequest) {
 		return
 	}
 
-	effort := "low"
+	thinking := 256
 
 	request.Reasoning = &openrouter.ChatCompletionReasoning{
-		Effort: &effort,
+		MaxTokens: &thinking,
 	}
 }
 

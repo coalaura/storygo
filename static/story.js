@@ -12,6 +12,7 @@
 		$markdown = document.getElementById("markdown"),
 		$delete = document.getElementById("delete"),
 		$text = document.getElementById("text"),
+		$status = document.getElementById("status"),
 		$mode = document.getElementById("mode"),
 		$modeName = document.getElementById("mode-name"),
 		$direction = document.getElementById("direction"),
@@ -85,6 +86,10 @@
 
 			$text.removeAttribute("disabled");
 		}
+	}
+
+	function setStatus(status) {
+		$status.textContent = status || "";
 	}
 
 	function setSuggesting(status) {
@@ -267,6 +272,8 @@
 	}
 
 	async function stream(url, options, callback, finished) {
+		setStatus("Waiting...");
+
 		try {
 			const response = await fetch(url, options);
 
@@ -282,6 +289,14 @@
 
 				if (done) break;
 
+				if (value.length === 1 && value[0] === 0) {
+					setStatus("Reasoning...");
+
+					continue;
+				}
+
+				setStatus("Writing...");
+
 				const chunk = decoder.decode(value, {
 					stream: true,
 				});
@@ -293,6 +308,8 @@
 				alert(`${err}`);
 			}
 		} finally {
+			setStatus(false);
+
 			finished();
 		}
 	}
@@ -330,6 +347,8 @@
 		$context.value = payload.context;
 		$text.value = payload.text;
 		$direction.value = payload.direction;
+
+		$text.scrollTop = $text.scrollHeight;
 
 		return payload;
 	}

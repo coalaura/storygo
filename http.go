@@ -43,6 +43,8 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 	go func() {
 		defer close(ch)
 
+		var reasoning bool
+
 		for {
 			response, err := stream.Recv()
 			if err != nil {
@@ -55,8 +57,28 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 				return
 			}
 
-			if len(response.Choices) > 0 {
-				ch <- response.Choices[0].Delta.Content
+			if len(response.Choices) == 0 {
+				continue
+			}
+
+			choice := response.Choices[0]
+
+			if choice.FinishReason == openrouter.FinishReasonContentFilter {
+				ch <- "[stopped due to content_filter]"
+
+				return
+			}
+
+			content := choice.Delta.Content
+
+			if content != "" {
+				ch <- content
+			} else if choice.Delta.Reasoning != nil {
+				if !reasoning {
+					reasoning = true
+
+					ch <- "\x00"
+				}
 			}
 		}
 	}()

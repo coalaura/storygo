@@ -253,7 +253,7 @@ func GetImageMessage(hash string) (openrouter.ChatCompletionMessage, error) {
 		return message, errors.New("invalid hash")
 	}
 
-	data, err := os.ReadFile(ImageTextPath(hash))
+	data, err := os.ReadFile(ImageWebPPath(hash))
 	if err != nil {
 		return message, err
 	}

@@ -124,7 +124,7 @@ input[type="text"] {
 	gap: 10px;
 	padding: 2px 8px;
 	background: #494d64;
-	transition: 200ms;
+	transition: 150ms;
 	cursor: pointer;
 }
 
@@ -240,6 +240,15 @@ input[type="text"] {
 
 #direction {
 	height: 140px;
+}
+
+#status {
+	position: absolute;
+	bottom: 5px;
+	right: 5px;
+	font-size: 12px;
+	font-style: italic;
+	pointer-events: none;
 }
 
 .model .name.vision::before,
