@@ -27,7 +27,16 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 
 	overview.Clean(true)
 
-	request, err := CreateOverviewRequest(&overview)
+	model := GetModel(overview.Model)
+	if model == nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		log.Warning("overview: missing model")
+
+		return
+	}
+
+	request, err := CreateOverviewRequest(model, &overview)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -56,21 +65,32 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 	RespondWithStream(w, ctx, stream, "")
 }
 
-func CreateOverviewRequest(overview *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
+func CreateOverviewRequest(model *Model, overview *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
 	request := openrouter.ChatCompletionRequest{
-		Model:       "deepseek/deepseek-chat-v3-0324",
+		Model:       model.Slug,
 		Temperature: 0.8,
 		MaxTokens:   2048,
 		Stream:      true,
 	}
 
-	prompt, err := BuildPrompt(OverviewTmpl, overview)
+	model.SetReasoning(&request)
+
+	prompt, err := BuildPrompt(model, OverviewTmpl, overview)
 	if err != nil {
 		return request, err
 	}
 
 	request.Messages = []openrouter.ChatCompletionMessage{
 		openrouter.SystemMessage(prompt),
+	}
+
+	if overview.Image != nil && model.Vision {
+		img, err := GetImageMessage(*overview.Image)
+		if err != nil {
+			return request, err
+		}
+
+		request.Messages = append(request.Messages, img)
 	}
 
 	return request, nil

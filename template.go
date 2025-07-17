@@ -8,6 +8,7 @@ import (
 )
 
 type GenerationRequest struct {
+	Model     string   `json:"model"`
 	Text      string   `json:"text"`
 	Context   string   `json:"context"`
 	Direction string   `json:"direction"`
@@ -62,7 +63,7 @@ func (g *GenerationRequest) TagList() string {
 	return fmt.Sprintf("\"%s\"", strings.Join(g.Tags, "\", \""))
 }
 
-func BuildPrompt(tmpl *template.Template, request *GenerationRequest) (string, error) {
+func BuildPrompt(model *Model, tmpl *template.Template, request *GenerationRequest) (string, error) {
 	data := GenerationTemplate{
 		Tags:      request.TagList(),
 		Context:   request.Context,
@@ -71,7 +72,7 @@ func BuildPrompt(tmpl *template.Template, request *GenerationRequest) (string, e
 		Empty:     request.Text == "",
 	}
 
-	if request.Image != nil {
+	if request.Image != nil && !model.Vision {
 		description, err := GetImageDescription(*request.Image)
 		if err != nil {
 			return "", err

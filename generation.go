@@ -27,7 +27,16 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 	generation.Clean(false)
 
-	request, err := CreateGenerationRequest(&generation)
+	model := GetModel(generation.Model)
+	if model == nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		log.Warning("generation: missing model")
+
+		return
+	}
+
+	request, err := CreateGenerationRequest(model, &generation)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -56,22 +65,33 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	RespondWithStream(w, ctx, stream, "\n")
 }
 
-func CreateGenerationRequest(generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
+func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
 	request := openrouter.ChatCompletionRequest{
-		Model:       "deepseek/deepseek-chat-v3-0324",
+		Model:       model.Slug,
 		Temperature: 0.8,
 		MaxTokens:   1024,
 		Stop:        []string{"\n"},
 		Stream:      true,
 	}
 
-	prompt, err := BuildPrompt(GenerationTmpl, generation)
+	model.SetReasoning(&request)
+
+	prompt, err := BuildPrompt(model, GenerationTmpl, generation)
 	if err != nil {
 		return request, err
 	}
 
 	request.Messages = []openrouter.ChatCompletionMessage{
 		openrouter.SystemMessage(prompt),
+	}
+
+	if generation.Image != nil && model.Vision {
+		img, err := GetImageMessage(*generation.Image)
+		if err != nil {
+			return request, err
+		}
+
+		request.Messages = append(request.Messages, img)
 	}
 
 	return request, nil

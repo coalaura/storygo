@@ -228,3 +228,37 @@ func GetImageDescription(hash string) (string, error) {
 
 	return string(data), nil
 }
+
+func GetImageMessage(hash string) (openrouter.ChatCompletionMessage, error) {
+	message := openrouter.ChatCompletionMessage{
+		Role: openrouter.ChatMessageRoleUser,
+		Content: openrouter.Content{
+			Multi: []openrouter.ChatMessagePart{
+				{
+					Type: openrouter.ChatMessagePartTypeText,
+					Text: "Here is a key image for the story. It could be a character's appearance, a specific location, or a pivotal scene. Use this image as a guiding reference for atmosphere and consistency, letting its details subtly inform your response.",
+				},
+				{
+					Type: openrouter.ChatMessagePartTypeImageURL,
+					ImageURL: &openrouter.ChatMessageImageURL{
+						URL:    "data:image/webp;base64,",
+						Detail: openrouter.ImageURLDetailAuto,
+					},
+				},
+			},
+		},
+	}
+
+	if !IsHashValid(hash) {
+		return message, errors.New("invalid hash")
+	}
+
+	data, err := os.ReadFile(ImageTextPath(hash))
+	if err != nil {
+		return message, err
+	}
+
+	message.Content.Multi[1].ImageURL.URL += base64.StdEncoding.EncodeToString(data)
+
+	return message, nil
+}

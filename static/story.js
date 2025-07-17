@@ -1,5 +1,6 @@
 (() => {
 	const $page = document.getElementById("page"),
+		$model = document.getElementById("model"),
 		$context = document.getElementById("context"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
@@ -21,6 +22,7 @@
 		generating,
 		suggesting,
 		image,
+		model,
 		mode = "generate";
 
 	function setUploading(status) {
@@ -124,6 +126,76 @@
 		});
 
 		$tags.appendChild(tag);
+	}
+
+	function setModel(list, set) {
+		if (!list.find((entry) => entry.key === set)) {
+			set = list[0].key;
+		}
+
+		model = set;
+
+		for (const entry of list) {
+			const { key, element } = entry;
+
+			if (key === model) {
+				element.classList.add("selected");
+			} else {
+				element.classList.remove("selected");
+			}
+		}
+
+		store("model", model);
+	}
+
+	function buildModels(models) {
+		const list = [];
+
+		for (const entry of models) {
+			const element = document.createElement("div");
+
+			element.classList.add("model");
+
+			const name = document.createElement("div");
+
+			name.textContent = entry.name;
+			name.classList.add("name");
+
+			if (entry.vision) {
+				name.classList.add("vision");
+			}
+
+			element.appendChild(name);
+
+			const tags = document.createElement("div");
+
+			tags.classList.add("tags");
+
+			for (const tag of entry.tags) {
+				const el = document.createElement("div");
+
+				el.title = tag;
+				el.style.backgroundImage = `url("/icons/tags/${tag}.svg")`;
+				el.classList.add("tag");
+
+				tags.appendChild(el);
+			}
+
+			element.appendChild(tags);
+
+			$model.appendChild(element);
+
+			element.addEventListener("click", () => {
+				setModel(list, entry.key);
+			});
+
+			list.push({
+				key: entry.key,
+				element: element,
+			});
+		}
+
+		setModel(list, load("model", null));
 	}
 
 	function download(name, type, data) {
@@ -237,6 +309,7 @@
 
 	function buildPayload(inline) {
 		const payload = {
+			model: model,
 			context: clean($context.value),
 			text: clean($text.value),
 			direction: clean($direction.value),
@@ -359,6 +432,7 @@
 			"save-file.json",
 			"application/json",
 			JSON.stringify({
+				mdl: model,
 				ctx: clean($context.value),
 				txt: clean($text.value),
 				dir: clean($direction.value),
@@ -388,6 +462,12 @@
 
 				if (!json?.ctx && !json?.txt && !json?.dir) {
 					throw new Error("empty safe file");
+				}
+
+				if (json.mdl && typeof json.mdl === "string") {
+					setModel(json.mdl);
+				} else {
+					setModel(null);
 				}
 
 				if (json.ctx && typeof json.ctx === "string") {
@@ -454,6 +534,7 @@
 
 		$tags.innerHTML = "";
 
+		setModel(null);
 		setImage(null);
 
 		storeAll();
@@ -640,4 +721,8 @@
 			appendTag(tag);
 		}
 	}
+
+	fetch("/models")
+		.then((response) => response.json())
+		.then(buildModels);
 })();

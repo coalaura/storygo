@@ -24,7 +24,7 @@ This is the foundational information about characters, the world, and crucially,
 
 {{if .Image}}
 ### VISUAL ANCHOR ###
-This is a text description of a key image. The proposed plot must creatively build towards or explain this scene, character, or mood.
+This is a detailed text description of a key image (e.g., a character's appearance, a specific location, or a pivotal scene). Use it as a guiding reference for atmosphere and consistency.
 <visual_anchor>
 {{.Image}}
 </visual_anchor>

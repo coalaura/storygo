@@ -28,7 +28,16 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 
 	suggestion.Clean(true)
 
-	request, err := CreateSuggestionRequest(&suggestion)
+	model := GetModel(suggestion.Model)
+	if model == nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		log.Warning("suggestion: missing model")
+
+		return
+	}
+
+	request, err := CreateSuggestionRequest(model, &suggestion)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -55,20 +64,31 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 	RespondWithText(w, 200, cleaned)
 }
 
-func CreateSuggestionRequest(suggestion *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
+func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
 	request := openrouter.ChatCompletionRequest{
-		Model:       "deepseek/deepseek-chat-v3-0324",
+		Model:       model.Slug,
 		Temperature: 0.8,
 		MaxTokens:   256,
 	}
 
-	prompt, err := BuildPrompt(SuggestionTmpl, suggestion)
+	model.SetReasoning(&request)
+
+	prompt, err := BuildPrompt(model, SuggestionTmpl, suggestion)
 	if err != nil {
 		return request, err
 	}
 
 	request.Messages = []openrouter.ChatCompletionMessage{
 		openrouter.SystemMessage(prompt),
+	}
+
+	if suggestion.Image != nil && model.Vision {
+		img, err := GetImageMessage(*suggestion.Image)
+		if err != nil {
+			return request, err
+		}
+
+		request.Messages = append(request.Messages, img)
 	}
 
 	return request, nil

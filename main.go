@@ -20,7 +20,9 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/*", http.StripPrefix("/", fs))
 
+	r.Get("/models", HandleModelsServe)
 	r.Get("/image/{hash}", HandleImageServe)
+
 	r.Post("/upload", HandleImageUpload)
 	r.Post("/suggest", HandleSuggestion)
 	r.Post("/overview", HandleOverview)

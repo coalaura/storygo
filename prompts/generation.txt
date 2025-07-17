@@ -28,7 +28,7 @@ This is the overall context, character sheets, and world information. Use it for
 
 {{if .Image}}
 <visual_context>
-This is a detailed text description of a key visual element. Use this to enrich your description.
+This is a detailed text description of a key image (e.g., a character's appearance, a specific location, or a pivotal scene). Use it as a guiding reference for atmosphere and consistency.
 {{.Image}}
 </visual_context>
 
