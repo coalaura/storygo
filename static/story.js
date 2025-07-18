@@ -12,10 +12,11 @@
 		$markdown = document.getElementById("markdown"),
 		$delete = document.getElementById("delete"),
 		$text = document.getElementById("text"),
-		$status = document.getElementById("status"),
+		$textStatus = document.getElementById("text-status"),
 		$mode = document.getElementById("mode"),
 		$modeName = document.getElementById("mode-name"),
 		$direction = document.getElementById("direction"),
+		$directionStatus = document.getElementById("direction-status"),
 		$suggest = document.getElementById("suggest"),
 		$generate = document.getElementById("generate");
 
@@ -88,16 +89,24 @@
 		}
 	}
 
-	function setStatus(status) {
-		$status.textContent = status || "";
+	function setTextStatus(status) {
+		$textStatus.textContent = status || "";
+	}
+
+	function setDirectionStatus(status) {
+		$directionStatus.textContent = status || "";
 	}
 
 	function setSuggesting(status) {
 		suggesting = status;
 
 		if (suggesting) {
+			$page.classList.add("suggesting");
+
 			$direction.setAttribute("disabled", "true");
 		} else {
+			$page.classList.remove("suggesting");
+
 			$direction.removeAttribute("disabled");
 		}
 	}
@@ -271,8 +280,10 @@
 		return value;
 	}
 
-	async function stream(url, options, callback, finished) {
-		setStatus("Waiting...");
+	async function stream(url, options, callback) {
+		callback("status", "waiting");
+
+		let reasoning, receiving;
 
 		try {
 			const response = await fetch(url, options);
@@ -290,27 +301,34 @@
 				if (done) break;
 
 				if (value.length === 1 && value[0] === 0) {
-					setStatus("Reasoning...");
+					if (!reasoning) {
+						reasoning = true;
+
+						callback("status", "reasoning");
+					}
 
 					continue;
 				}
 
-				setStatus("Writing...");
+				if (!receiving) {
+					receiving = true;
+
+					callback("status", "receiving");
+				}
 
 				const chunk = decoder.decode(value, {
 					stream: true,
 				});
 
-				callback(chunk);
+				callback("chunk", chunk);
 			}
 		} catch (err) {
 			if (err.name !== "AbortError") {
 				alert(`${err}`);
 			}
 		} finally {
-			setStatus(false);
-
-			finished();
+			callback("status", false);
+			callback("finished");
 		}
 	}
 
@@ -324,7 +342,7 @@
 		return tags;
 	}
 
-	function buildPayload(inline) {
+	function buildPayload(key, element, inline) {
 		const payload = {
 			model: model,
 			context: clean($context.value),
@@ -340,48 +358,56 @@
 			return false;
 		}
 
-		if (payload.text) {
-			payload.text += inline ? " " : "\n\n";
+		if (payload[key]) {
+			payload[key] += inline ? " " : "\n\n";
 		}
 
 		$context.value = payload.context;
 		$text.value = payload.text;
 		$direction.value = payload.direction;
 
-		$text.scrollTop = $text.scrollHeight;
+		element.scrollTop = element.scrollHeight;
 
 		return payload;
 	}
 
 	let controller;
 
-	async function generate(inline) {
-		if (uploading || suggesting) return;
+	async function generate(endpoint, inline) {
+		if (uploading || generating || suggesting) return;
 
-		if (generating) {
-			controller?.abort?.();
-
-			return;
-		}
-
-		if (mode === "overview") {
+		if (endpoint === "overview") {
 			$text.value = "";
 		}
 
-		const payload = buildPayload(inline);
+		let _enable, _status, _element, _key;
+
+		if (endpoint === "suggest") {
+			_enable = setSuggesting;
+			_status = setDirectionStatus;
+			_element = $direction;
+			_key = "direction";
+		} else {
+			_enable = setGenerating;
+			_status = setTextStatus;
+			_element = $text;
+			_key = "text";
+		}
+
+		const payload = buildPayload(_key, _element, inline);
 
 		if (!payload) {
 			return;
 		}
 
-		setGenerating(true);
+		_enable(true);
 
 		controller = new AbortController();
 
 		storeAll();
 
 		stream(
-			`/${mode}`,
+			`/${endpoint}`,
 			{
 				method: "POST",
 				headers: {
@@ -390,28 +416,47 @@
 				body: JSON.stringify(payload),
 				signal: controller.signal,
 			},
-			(chunk) => {
-				payload.text += chunk;
+			(type, data) => {
+				switch (type) {
+					// Status update
+					case "status":
+						_status(data);
 
-				$text.value = payload.text;
-				$text.scrollTop = $text.scrollHeight;
+						break;
+					// Chunk received
+					case "chunk":
+						payload[_key] += data;
 
-				store("text", payload.text);
-			},
-			() => {
-				setGenerating(false);
+						_element.value = payload[_key];
+						_element.scrollTop = _element.scrollHeight;
 
-				payload.text = clean(dai.clean(payload.text));
+						store(_key, payload[_key]);
 
-				$text.value = payload.text;
+						break;
+					// Finished
+					case "finished":
+						_enable(false);
 
-				store("text", payload.text);
+						payload[_key] = clean(dai.clean(payload[_key]));
+
+						_element.value = payload[_key];
+
+						store(_key, payload[_key]);
+
+						break;
+				}
 			},
 		);
 	}
 
 	$generate.addEventListener("click", async () => {
-		generate(false);
+		if (generating) {
+			controller?.abort?.();
+
+			return;
+		}
+
+		generate(mode, false);
 	});
 
 	$mode.addEventListener("click", () => {
@@ -611,53 +656,13 @@
 	});
 
 	$suggest.addEventListener("click", async () => {
-		if (uploading || generating | suggesting) return;
+		if (suggesting) {
+			controller?.abort?.();
 
-		const payload = buildPayload(false);
-
-		if (!payload) {
 			return;
 		}
 
-		setSuggesting(true);
-
-		let direction = payload.direction;
-
-		$direction.value += `${direction ? "\n\n" : ""}suggesting...`;
-
-		try {
-			const response = await fetch("/suggest", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(payload),
-			});
-
-			if (!response.ok) {
-				throw new Error(`Suggestion failed with status ${response.status}`);
-			}
-
-			const text = await response.text();
-
-			if (direction) {
-				direction += "\n\n";
-			}
-
-			direction += text;
-		} catch (err) {
-			if (err.name !== "AbortError") {
-				alert(`${err}`);
-			}
-		} finally {
-			setSuggesting(false);
-
-			direction = clean(dai.clean(direction));
-
-			$direction.value = direction;
-
-			store("direction", direction);
-		}
+		generate("suggest", false);
 	});
 
 	$tag.addEventListener("keydown", (event) => {
@@ -702,7 +707,7 @@
 		} else if (event.key === "Tab") {
 			event.preventDefault();
 
-			generate(true);
+			generate(mode, true);
 		}
 	});
 
@@ -714,7 +719,11 @@
 		if (event.ctrlKey && event.key === "Enter") {
 			event.preventDefault();
 
-			$generate.click();
+			$suggest.click();
+		} else if (event.key === "Tab") {
+			event.preventDefault();
+
+			generate("suggest", true);
 		}
 	});
 

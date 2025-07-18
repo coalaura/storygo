@@ -242,7 +242,8 @@ input[type="text"] {
 	height: 140px;
 }
 
-#status {
+#text-status,
+#direction-status {
 	position: absolute;
 	bottom: 5px;
 	right: 5px;
@@ -270,19 +271,23 @@ input[type="text"] {
 #suggest,
 #generate {
 	position: absolute;
-	bottom: 8px;
-	right: 8px;
-	width: 30px;
-	height: 30px;
+	top: 6px;
+	right: 6px;
+	width: 26px;
+	height: 26px;
 	background-image: url(icons/send.svg);
 }
 
 #suggest {
-	bottom: 44px;
+	right: 36px;
 	background-image: url(icons/thought.svg);
 }
 
 .generating #generate {
+	background-image: url(icons/stop.svg);
+}
+
+.suggesting #suggest {
 	background-image: url(icons/stop.svg);
 }
 

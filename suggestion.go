@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/revrost/go-openrouter"
 )
@@ -47,7 +46,9 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	completion, err := OpenRouterRunCompletion(request)
+	ctx := r.Context()
+
+	stream, err := OpenRouterStartStream(ctx, request)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -57,11 +58,11 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer stream.Close()
+
 	defer log.Debug("suggestion: finished completion")
 
-	cleaned := strings.ReplaceAll(completion.Choices[0].Message.Content.Text, "\n\n", "\n")
-
-	RespondWithText(w, 200, cleaned)
+	RespondWithStream(w, ctx, stream, "")
 }
 
 func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openrouter.ChatCompletionRequest, error) {
@@ -69,6 +70,7 @@ func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openr
 		Model:       model.Slug,
 		Temperature: 0.8,
 		MaxTokens:   256,
+		Stream:      true,
 	}
 
 	model.SetReasoning(&request)
