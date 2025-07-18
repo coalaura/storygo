@@ -483,7 +483,7 @@
 			return;
 		}
 
-		const doc = new jsPDF({
+		const doc = new jspdf.jsPDF({
 			orientation: "portrait",
 			unit: "mm",
 			format: "a4",
@@ -493,7 +493,7 @@
 			docHeight = doc.internal.pageSize.height;
 
 		const margin = 15,
-			lineHeight = 4,
+			lineHeight = 5,
 			gutter = 4,
 			maxWidth = docWidth - margin * 2;
 
@@ -531,27 +531,36 @@
 		const paragraphs = text.split(/(\r?\n)+/g).map((p) => p.trim());
 
 		for (const paragraph of paragraphs) {
-			let textWidth = maxWidth;
+			let remainingText = paragraph;
 
-			if (imageHeight > 0 && y < imageBottomY) {
-				textWidth = maxWidth - imageWidth - gutter;
+			while (remainingText.length > 0) {
+				if (y + lineHeight > docHeight - margin) {
+					doc.addPage();
+
+					y = margin;
+				}
+
+				let textWidth = maxWidth;
+
+				if (imageHeight > 0 && y < imageBottomY) {
+					textWidth = maxWidth - imageWidth - gutter;
+				}
+
+				const lines = doc.splitTextToSize(remainingText, textWidth),
+					line = lines[0];
+
+				doc.text(line, margin, y, {
+					baseline: "top",
+					align: "justify",
+					maxWidth: textWidth,
+				});
+
+				y += lineHeight;
+
+				remainingText = remainingText.substring(line.length).trim();
 			}
 
-			const lines = doc.splitTextToSize(paragraph, textWidth),
-				blockHeight = lines.length * lineHeight;
-
-			if (y + blockHeight > docHeight - margin) {
-				doc.addPage();
-
-				y = margin;
-			}
-
-			doc.text(lines, margin, y, {
-				align: "justify",
-				maxWidth: textWidth,
-			});
-
-			y += blockHeight + lineHeight;
+			y += lineHeight / 2;
 		}
 
 		doc.save("story.pdf");
