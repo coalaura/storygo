@@ -228,7 +228,17 @@
 		};
 
 		if (!payload.context) {
-			payload.context = `${payload.text ? "Continue" : "Start"} the story${payload.image ? ", given the reference image" : ""}.`;
+			const action = payload.text
+				? "Seamlessly continue the narrative"
+				: "Craft an original and engaging story";
+
+			const inspiration = payload.image
+				? ", drawing creative inspiration from the provided image"
+				: !payload.text
+					? ". You have complete creative freedom"
+					: "";
+
+			payload.context = `${action}${inspiration}.`;
 		}
 
 		if (payload[key]) {
