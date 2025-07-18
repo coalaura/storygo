@@ -84,7 +84,6 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 	}()
 
 	var finished bool
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -99,6 +98,8 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 			if stop != "" {
 				if index := strings.Index(chunk, stop); index != -1 {
 					chunk = chunk[:index]
+
+					finished = true
 				}
 			}
 
