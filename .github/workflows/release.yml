@@ -59,7 +59,7 @@ jobs:
 
         cp -r static build/static
         tar -czvf build/storygo_${{ github.ref_name }}_${{ matrix.flavour }}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz -C build "storygo${EXT}" static
-        rm -rf build/static "storygo${EXT}"
+        rm -rf build/static "build/storygo${EXT}"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
