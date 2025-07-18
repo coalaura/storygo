@@ -217,6 +217,18 @@
 		return tags;
 	}
 
+	function buildNewContext(payload) {
+		if (payload.text && payload.image) {
+			return "Seamlessly continue the story, maintaining the established tone and plot. Use the provided image as a subtle reference for atmosphere or detail.";
+		} else if (payload.text && !payload.image) {
+			return "Seamlessly continue the story, maintaining the established tone, characters, and plot.";
+		} else if (!payload.text && payload.image) {
+			return "Craft a compelling and original story directly inspired by the provided image. Let it be your primary creative anchor.";
+		}
+
+		return "Craft a compelling and original story from scratch. You have complete creative freedom.";
+	}
+
 	function buildPayload(key, element, inline) {
 		const payload = {
 			model: model,
@@ -228,17 +240,7 @@
 		};
 
 		if (!payload.context) {
-			const action = payload.text
-				? "Seamlessly continue the narrative"
-				: "Craft an original and engaging story";
-
-			const inspiration = payload.image
-				? ", drawing creative inspiration from the provided image"
-				: !payload.text
-					? ". You have complete creative freedom"
-					: "";
-
-			payload.context = `${action}${inspiration}.`;
+			payload.context = buildNewContext(payload);
 		}
 
 		if (payload[key]) {
