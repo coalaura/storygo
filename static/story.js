@@ -133,14 +133,16 @@
 		$tags.appendChild(tag);
 	}
 
-	function setModel(list, set) {
-		if (!list.find((entry) => entry.key === set)) {
-			set = list[0].key;
+	const modelList = [];
+
+	function setModel(set) {
+		if (!modelList.find((entry) => entry.key === set)) {
+			set = modelList[0].key;
 		}
 
 		model = set;
 
-		for (const entry of list) {
+		for (const entry of modelList) {
 			const { key, element } = entry;
 
 			if (key === model) {
@@ -154,8 +156,6 @@
 	}
 
 	function buildModels(models) {
-		const list = [];
-
 		for (const entry of models) {
 			const element = document.createElement("div");
 
@@ -191,16 +191,16 @@
 			$model.appendChild(element);
 
 			element.addEventListener("click", () => {
-				setModel(list, entry.key);
+				setModel(entry.key);
 			});
 
-			list.push({
+			modelList.push({
 				key: entry.key,
 				element: element,
 			});
 		}
 
-		setModel(list, load("model", null));
+		setModel(load("model", null));
 	}
 
 	function download(name, type, data) {
@@ -529,7 +529,9 @@
 				}
 
 				storeAll();
-			} catch {
+			} catch (err) {
+				console.error(err);
+
 				alert("Invalid safe file.");
 			}
 		};
