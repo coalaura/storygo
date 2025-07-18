@@ -58,8 +58,9 @@ jobs:
           -o "build/storygo${EXT}" .
 
         cp -r static build/static
+        cp .example.env build/.env
         tar -czvf build/storygo_${{ github.ref_name }}_${{ matrix.flavour }}_${{ matrix.goos }}_${{ matrix.goarch }}.tar.gz -C build "storygo${EXT}" static
-        rm -rf build/static "build/storygo${EXT}"
+        rm -rf build/static build/.env "build/storygo${EXT}"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
