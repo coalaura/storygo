@@ -100,6 +100,8 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 					chunk = chunk[:index]
 
 					finished = true
+
+					log.Debug("received stop word")
 				}
 			}
 
