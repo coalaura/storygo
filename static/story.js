@@ -526,7 +526,8 @@
 			}
 		}
 
-		let y = margin;
+		let y = margin,
+			passed;
 
 		const paragraphs = text.split(/(\r?\n)+/g).map((p) => p.trim());
 
@@ -534,30 +535,46 @@
 			let remainingText = paragraph;
 
 			while (remainingText.length > 0) {
-				if (y + lineHeight > docHeight - margin) {
-					doc.addPage();
+				let section = [],
+					nextY = y,
+					textWidth = maxWidth;
 
-					y = margin;
+				while (remainingText.length > 0) {
+					if (innerY + lineHeight > docHeight - margin) {
+						doc.addPage();
+
+						nextY = margin;
+					}
+
+					let newTextWidth = maxWidth;
+
+					if (imageHeight > 0 && nextY < imageBottomY) {
+						newTextWidth = maxWidth - imageWidth - gutter;
+					} else if (!passed) {
+						passed = true;
+
+						break;
+					}
+
+					textWidth = newTextWidth;
+
+					const lines = doc.splitTextToSize(remainingText, textWidth),
+						line = lines[0];
+
+					section.push(line);
+
+					nextY += lineHeight;
+
+					remainingText = remainingText.substring(line.length).trim();
 				}
 
-				let textWidth = maxWidth;
-
-				if (imageHeight > 0 && y < imageBottomY) {
-					textWidth = maxWidth - imageWidth - gutter;
-				}
-
-				const lines = doc.splitTextToSize(remainingText, textWidth),
-					line = lines[0];
-
-				doc.text(line, margin, y, {
+				doc.text(section.join("\n"), margin, y, {
 					baseline: "top",
 					align: "justify",
 					maxWidth: textWidth,
 				});
 
-				y += lineHeight;
-
-				remainingText = remainingText.substring(line.length).trim();
+				y = nextY;
 			}
 
 			y += lineHeight / 2;
