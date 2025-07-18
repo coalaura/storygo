@@ -38,21 +38,24 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	ch := make(chan string)
+	var (
+		finished bool
+		recv     = make(chan string)
+	)
 
 	go func() {
-		defer close(ch)
+		defer close(recv)
 
 		var reasoning bool
 
 		for {
 			response, err := stream.Recv()
 			if err != nil {
-				if errors.Is(err, io.EOF) {
+				if finished || errors.Is(err, io.EOF) {
 					return
 				}
 
-				ch <- err.Error()
+				recv <- err.Error()
 
 				return
 			}
@@ -64,7 +67,7 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 			choice := response.Choices[0]
 
 			if choice.FinishReason == openrouter.FinishReasonContentFilter {
-				ch <- "[stopped due to content_filter]"
+				recv <- "[stopped due to content_filter]"
 
 				return
 			}
@@ -72,25 +75,24 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 			content := choice.Delta.Content
 
 			if content != "" {
-				ch <- content
+				recv <- content
 			} else if choice.Delta.Reasoning != nil {
 				if !reasoning {
 					reasoning = true
 
-					ch <- "\x00"
+					recv <- "\x00"
 				}
 			}
 		}
 	}()
 
-	var finished bool
 	for {
 		select {
 		case <-ctx.Done():
 			log.Debug("generation: client closed connection")
 
 			return
-		case chunk, ok := <-ch:
+		case chunk, ok := <-recv:
 			if !ok {
 				return
 			}
