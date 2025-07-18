@@ -26,11 +26,23 @@ StoryGo is a creative writing assistant powered by AI. It's designed to help wri
 
 ## Installation
 
-To get StoryGo up and running, you'll need to have Go installed on your system.
+You can run StoryGo in two ways: by downloading a prebuilt release or by compiling it from source.
+
+### Prebuilt Releases (Recommended)
+
+The easiest way to get started is to download the latest prebuilt release for your operating system and architecture from the [Releases page](https://github.com/coalaura/storygo/releases). These are stable, ready-to-run versions.
+
+After downloading, you can simply run the executable.
+
+### From Source (for Developers)
+
+If you prefer to compile the application yourself or want to work with the latest development version (which may not be stable), you can build it from source.
+
+You'll need to have Go installed on your system.
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/your-username/storygo.git
+git clone https://github.com/coalaura/storygo.git
 cd storygo
 ```
 
@@ -46,10 +58,7 @@ go mod tidy
 OPENROUTER_TOKEN="your-openrouter-api-key"
 ```
 
-## Running the Application
-
-Once you've completed the installation steps, you can run the application with the following command:
-
+4. **Run the application:**
 ```bash
 go run .
 ```
