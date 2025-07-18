@@ -259,7 +259,7 @@ input[type="text"] {
 #mode,
 #import,
 #export,
-#markdown,
+#save,
 #delete,
 #preview::before,
 #preview.image {
@@ -298,7 +298,7 @@ input[type="text"] {
 #mode,
 #import,
 #export,
-#markdown,
+#save,
 #delete {
 	width: 22px;
 	height: 22px;
@@ -316,7 +316,7 @@ input[type="text"] {
 	background-image: url(icons/export.svg);
 }
 
-#markdown {
+#save {
 	background-image: url(icons/save.svg);
 }
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -111,7 +110,7 @@ func HandleImageServe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := os.OpenFile(ImageWebPPath(hash), os.O_RDONLY, 0)
+	file, err := os.OpenFile(ImageWebpPath(hash), os.O_RDONLY, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -130,7 +129,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	processing.Lock(hash)
 	defer processing.Unlock(hash)
 
-	path := ImageWebPPath(hash)
+	path := ImageWebpPath(hash)
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return nil
@@ -202,7 +201,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	return os.WriteFile(path, []byte(completion.Choices[0].Message.Content.Text), 0644)
 }
 
-func ImageWebPPath(hash string) string {
+func ImageWebpPath(hash string) string {
 	return filepath.Join("images", hash+".webp")
 }
 
@@ -214,51 +213,4 @@ func IsHashValid(hash string) bool {
 	rgx := regexp.MustCompile(`(?m)^[a-f0-9]+$`)
 
 	return rgx.MatchString(hash)
-}
-
-func GetImageDescription(hash string) (string, error) {
-	if !IsHashValid(hash) {
-		return "", errors.New("invalid hash")
-	}
-
-	data, err := os.ReadFile(ImageTextPath(hash))
-	if err != nil {
-		return "", err
-	}
-
-	return string(data), nil
-}
-
-func GetImageMessage(hash string) (openrouter.ChatCompletionMessage, error) {
-	message := openrouter.ChatCompletionMessage{
-		Role: openrouter.ChatMessageRoleUser,
-		Content: openrouter.Content{
-			Multi: []openrouter.ChatMessagePart{
-				{
-					Type: openrouter.ChatMessagePartTypeText,
-					Text: "Here is a key image for the story. It could be a character's appearance, a specific location, or a pivotal scene. Use this image as a guiding reference for atmosphere and consistency, letting its details subtly inform your response.",
-				},
-				{
-					Type: openrouter.ChatMessagePartTypeImageURL,
-					ImageURL: &openrouter.ChatMessageImageURL{
-						URL:    "data:image/webp;base64,",
-						Detail: openrouter.ImageURLDetailAuto,
-					},
-				},
-			},
-		},
-	}
-
-	if !IsHashValid(hash) {
-		return message, errors.New("invalid hash")
-	}
-
-	data, err := os.ReadFile(ImageWebPPath(hash))
-	if err != nil {
-		return message, err
-	}
-
-	message.Content.Multi[1].ImageURL.URL += base64.StdEncoding.EncodeToString(data)
-
-	return message, nil
 }

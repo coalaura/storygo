@@ -73,7 +73,7 @@ func BuildPrompt(model *Model, tmpl *template.Template, request *GenerationReque
 	}
 
 	if request.Image != nil && !model.Vision {
-		description, err := GetImageDescription(*request.Image)
+		description, err := ReadImageTextData(*request.Image)
 		if err != nil {
 			return "", err
 		}

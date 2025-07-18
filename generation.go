@@ -86,12 +86,12 @@ func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openr
 	}
 
 	if generation.Image != nil && model.Vision {
-		img, err := GetImageMessage(*generation.Image)
+		msg, err := ReadImageAsCompletionMessage(*generation.Image)
 		if err != nil {
 			return request, err
 		}
 
-		request.Messages = append(request.Messages, img)
+		request.Messages = append(request.Messages, *msg)
 	}
 
 	return request, nil

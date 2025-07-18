@@ -85,12 +85,12 @@ func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openr
 	}
 
 	if suggestion.Image != nil && model.Vision {
-		img, err := GetImageMessage(*suggestion.Image)
+		msg, err := ReadImageAsCompletionMessage(*suggestion.Image)
 		if err != nil {
 			return request, err
 		}
 
-		request.Messages = append(request.Messages, img)
+		request.Messages = append(request.Messages, *msg)
 	}
 
 	return request, nil

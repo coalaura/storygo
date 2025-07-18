@@ -53,7 +53,7 @@
 					<div class="buttons">
 						<button id="import" title="Import a story from a json safe-file"></button>
 						<button id="export" title="Export the story as json, for later re-import"></button>
-						<button id="markdown" title="Export the story as markdown"></button>
+						<button id="save" title="Export the story as a PDF"></button>
 						<button id="delete" title="Clear the entire story and the image"></button>
 					</div>
 				</h2>
@@ -79,6 +79,7 @@
 			<input type="file" id="import-file" accept="application/json" />
 		</div>
 
+		<script src="jspdf.min.js"></script>
 		<script src="dai.js"></script>
 		<script src="story.js"></script>
 	</body>

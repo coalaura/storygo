@@ -9,7 +9,7 @@
 		$import = document.getElementById("import"),
 		$importFile = document.getElementById("import-file"),
 		$export = document.getElementById("export"),
-		$markdown = document.getElementById("markdown"),
+		$save = document.getElementById("save"),
 		$delete = document.getElementById("delete"),
 		$text = document.getElementById("text"),
 		$textStatus = document.getElementById("text-status"),
@@ -39,34 +39,29 @@
 		}
 	}
 
-	let exists;
+	function preloadImage(url) {
+		return new Promise((resolve) => {
+			const img = new Image();
 
-	function setImage(hash) {
-		exists?.abort?.();
+			img.src = url;
 
+			img.onload = () => resolve(img);
+			img.onerror = () => resolve(false);
+		});
+	}
+
+	async function setImage(hash) {
 		image = hash;
 
 		if (image) {
+			const url = `/image/${image}`;
+
 			$preview.classList.add("image");
-			$preview.style.backgroundImage = `url("/image/${image}")`;
+			$preview.style.backgroundImage = `url("${url}")`;
 
-			exists = new AbortController();
-
-			fetch(`/image/${image}`, {
-				signal: exists.signal,
-			})
-				.then((resp) => {
-					if (!resp.ok) {
-						setImage(null);
-					}
-				})
-				.catch((err) => {
-					if (err.name === "AbortError") {
-						return;
-					}
-
-					setImage(null);
-				});
+			if (!(await preloadImage(url))) {
+				setImage(null);
+			}
 		} else {
 			$preview.classList.remove("image");
 			$preview.style.backgroundImage = "";
@@ -212,6 +207,43 @@
 		setModel(load("model", null));
 	}
 
+	function buildTags() {
+		const tags = [];
+
+		$tags.querySelectorAll(".tag").forEach((tag) => {
+			tags.push(tag.textContent.trim());
+		});
+
+		return tags;
+	}
+
+	function buildPayload(key, element, inline) {
+		const payload = {
+			model: model,
+			context: clean($context.value),
+			text: clean($text.value),
+			direction: clean($direction.value),
+			tags: buildTags(),
+			image: image,
+		};
+
+		if (!payload.context) {
+			payload.context = `${payload.text ? "Continue" : "Start"} the story${payload.image ? ", given the reference image" : ""}.`;
+		}
+
+		if (payload[key]) {
+			payload[key] += inline ? " " : "\n\n";
+		}
+
+		$context.value = payload.context;
+		$text.value = payload.text;
+		$direction.value = payload.direction;
+
+		element.scrollTop = element.scrollHeight;
+
+		return payload;
+	}
+
 	function download(name, type, data) {
 		const blob = new Blob([data], {
 			type: type,
@@ -332,45 +364,6 @@
 		}
 	}
 
-	function buildTags() {
-		const tags = [];
-
-		$tags.querySelectorAll(".tag").forEach((tag) => {
-			tags.push(tag.textContent.trim());
-		});
-
-		return tags;
-	}
-
-	function buildPayload(key, element, inline) {
-		const payload = {
-			model: model,
-			context: clean($context.value),
-			text: clean($text.value),
-			direction: clean($direction.value),
-			tags: buildTags(),
-			image: image,
-		};
-
-		if (!payload.context) {
-			alert("Missing context.");
-
-			return false;
-		}
-
-		if (payload[key]) {
-			payload[key] += inline ? " " : "\n\n";
-		}
-
-		$context.value = payload.context;
-		$text.value = payload.text;
-		$direction.value = payload.direction;
-
-		element.scrollTop = element.scrollHeight;
-
-		return payload;
-	}
-
 	let controller;
 
 	async function generate(endpoint, inline) {
@@ -479,14 +472,89 @@
 		}
 	});
 
-	$markdown.addEventListener("click", () => {
-		if (generating) return;
+	$save.addEventListener("click", async () => {
+		if (generating || uploading) return;
 
 		const text = clean($text.value);
 
-		if (!text) return;
+		if (!text) {
+			alert("Story is empty");
 
-		download("story.md", "text/markdown", text);
+			return;
+		}
+
+		const doc = new jsPDF({
+			orientation: "portrait",
+			unit: "mm",
+			format: "a4",
+		});
+
+		const docWidth = doc.internal.pageSize.width,
+			docHeight = doc.internal.pageSize.height;
+
+		const margin = 15,
+			lineHeight = 4,
+			gutter = 4,
+			maxWidth = docWidth - margin * 2;
+
+		doc.setFont("Times", "Roman");
+		doc.setFontSize(12);
+
+		let imageWidth = 0,
+			imageHeight = 0,
+			imageBottomY = 0;
+
+		if (image) {
+			const img = await preloadImage(`/image/${image}`);
+
+			if (img) {
+				const aspect = img.height / img.width;
+
+				imageWidth = 60;
+				imageHeight = imageWidth * aspect;
+
+				imageBottomY = margin + imageHeight;
+
+				doc.addImage(
+					img,
+					"PNG",
+					docWidth - margin - imageWidth,
+					margin,
+					imageWidth,
+					imageHeight,
+				);
+			}
+		}
+
+		let y = margin;
+
+		const paragraphs = text.split(/(\r?\n)+/g).map((p) => p.trim());
+
+		for (const paragraph of paragraphs) {
+			let textWidth = maxWidth;
+
+			if (imageHeight > 0 && y < imageBottomY) {
+				textWidth = maxWidth - imageWidth - gutter;
+			}
+
+			const lines = doc.splitTextToSize(paragraph, textWidth),
+				blockHeight = lines.length * lineHeight;
+
+			if (y + blockHeight > docHeight - margin) {
+				doc.addPage();
+
+				y = margin;
+			}
+
+			doc.text(lines, margin, y, {
+				align: "justify",
+				maxWidth: textWidth,
+			});
+
+			y += blockHeight + lineHeight;
+		}
+
+		doc.save("story.pdf");
 	});
 
 	$export.addEventListener("click", () => {
@@ -731,7 +799,7 @@
 		if (event.ctrlKey && event.key === "s") {
 			event.preventDefault();
 
-			$markdown.click();
+			$save.click();
 		}
 	});
 

@@ -85,12 +85,12 @@ func CreateOverviewRequest(model *Model, overview *GenerationRequest) (openroute
 	}
 
 	if overview.Image != nil && model.Vision {
-		img, err := GetImageMessage(*overview.Image)
+		msg, err := ReadImageAsCompletionMessage(*overview.Image)
 		if err != nil {
 			return request, err
 		}
 
-		request.Messages = append(request.Messages, img)
+		request.Messages = append(request.Messages, *msg)
 	}
 
 	return request, nil
