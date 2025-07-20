@@ -20,30 +20,18 @@ type Model struct {
 
 var (
 	Models = []*Model{
-		// Strongest open model with minimal restrictions and excellent creative output
+		// Excellent unmoderated model for creative writing, a great default.
 		NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
-		// Google's flagship model with superior reasoning and structured output
+		// The best choice for high-quality, literary prose and safe content.
+		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
+		// Google's flagship with vision, great for creative but logical stories.
 		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
-		// Current best reasoning model with excellent creative capabilities
-		NewModel("openai/o3", "OpenAI o3", false, true, []string{"literary", "moderated"}),
-		// Elon's latest flagship model - excellent at creative and reasoning tasks
-		NewModel("x-ai/grok-4", "Grok 4", false, true, []string{"unmoderated", "creative"}),
-		// Anthropic's flagship with superior literary style and safety
-		NewModel("anthropic/claude-opus-4", "Claude 4 Opus", false, true, []string{"literary", "verbose"}),
-		// Balanced Claude model with great creative writing capabilities
-		NewModel("anthropic/claude-sonnet-4", "Claude 4 Sonnet", false, true, []string{"creative", "structured"}),
-		// Strong unmoderated model excellent for character-driven stories
-		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
-		// China's breakout model with exceptional creative writing performance
-		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
-		// OpenAI's balanced flagship model
+		// OpenAI's versatile model with vision, excels at conversational storytelling.
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
-		// Cost-effective with strong performance
-		NewModel("meta-llama/llama-3.3-70b-instruct", "Llama 3.3 70B Instruct", false, false, []string{"unmoderated", "casual"}),
-		// Fast and efficient Google model
-		NewModel("google/gemini-2.5-flash", "Gemini 2.5 Flash", false, true, []string{"fast", "versatile"}),
-		// Efficient OpenAI model for quick tasks
-		NewModel("openai/gpt-4o-mini", "GPT-4o Mini", false, false, []string{"fast", "concise"}),
+		// A massive open model, excels at character-driven stories and dialogue.
+		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
+		// A top-tier open model with exceptional literary writing performance.
+		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
 	}
 
 	ModelList, _ = json.Marshal(Models)
