@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"image"
 	"io"
@@ -12,16 +13,16 @@ import (
 	"path/filepath"
 	"regexp"
 
-	_ "image/jpeg"
+	"image/jpeg"
 	_ "image/png"
+
+	_ "golang.org/x/image/webp"
 
 	"github.com/coalaura/lock"
 	"github.com/corona10/goimagehash"
-	"github.com/gen2brain/webp"
+	"github.com/go-chi/chi/v5"
 	"github.com/nfnt/resize"
 	"github.com/revrost/go-openrouter"
-
-	"github.com/go-chi/chi/v5"
 )
 
 var (
@@ -110,7 +111,7 @@ func HandleImageServe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, err := os.OpenFile(ImageWebpPath(hash), os.O_RDONLY, 0)
+	file, err := os.OpenFile(ImageJpegPath(hash), os.O_RDONLY, 0)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
@@ -129,7 +130,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	processing.Lock(hash)
 	defer processing.Unlock(hash)
 
-	path := ImageWebpPath(hash)
+	path := ImageJpegPath(hash)
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		return nil
@@ -150,9 +151,8 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	writer := io.MultiWriter(file, &buf)
 
-	err = webp.Encode(writer, img, webp.Options{
-		Quality: 95,
-		Method:  4,
+	err = jpeg.Encode(writer, img, &jpeg.Options{
+		Quality: 90,
 	})
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 						{
 							Type: openrouter.ChatMessagePartTypeImageURL,
 							ImageURL: &openrouter.ChatMessageImageURL{
-								URL:    "data:image/webp;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()),
+								URL:    "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()),
 								Detail: openrouter.ImageURLDetailHigh,
 							},
 						},
@@ -190,6 +190,9 @@ func DescribeImage(hash string, img image.Image, details string) error {
 			},
 		},
 	}
+
+	jsn, _ := json.Marshal(request)
+	os.WriteFile("test.json", jsn, 0755)
 
 	completion, err := OpenRouterRunCompletion(request)
 	if err != nil {
@@ -201,8 +204,8 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	return os.WriteFile(path, []byte(completion.Choices[0].Message.Content.Text), 0644)
 }
 
-func ImageWebpPath(hash string) string {
-	return filepath.Join("images", hash+".webp")
+func ImageJpegPath(hash string) string {
+	return filepath.Join("images", hash+".jpeg")
 }
 
 func ImageTextPath(hash string) string {

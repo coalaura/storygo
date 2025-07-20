@@ -18,7 +18,7 @@ func RespondWithText(w http.ResponseWriter, code int, text string) {
 }
 
 func RespondWithImage(w http.ResponseWriter, file io.Reader) {
-	w.Header().Set("Content-Type", "image/webp")
+	w.Header().Set("Content-Type", "image/jpeg")
 	w.WriteHeader(200)
 
 	io.Copy(w, file)
