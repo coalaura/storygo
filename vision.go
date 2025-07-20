@@ -165,7 +165,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	}
 
 	request := openrouter.ChatCompletionRequest{
-		Model:       "qwen/qwen2.5-vl-32b-instruct",
+		Model:       VisionModel,
 		Temperature: 0.15,
 		MaxTokens:   8192 * 2,
 		Messages: []openrouter.ChatCompletionMessage{

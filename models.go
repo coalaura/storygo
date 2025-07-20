@@ -26,6 +26,8 @@ var (
 		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
 		// Google's flagship with vision, great for creative but logical stories.
 		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
+		// xAI's flagship with vision; powerful, less restricted, and creative.
+		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}),
 		// OpenAI's versatile model with vision, excels at conversational storytelling.
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
 		// A massive open model, excels at character-driven stories and dialogue.
