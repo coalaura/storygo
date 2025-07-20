@@ -85,7 +85,7 @@ func CreateOverviewRequest(model *Model, overview *GenerationRequest) (openroute
 	}
 
 	if overview.Image != nil && model.Vision {
-		msg, err := ReadImageAsCompletionMessage(*overview.Image)
+		msg, err := ReadImageAsCompletionMessage(*overview.Image, model.UseCompatibility)
 		if err != nil {
 			return request, err
 		}

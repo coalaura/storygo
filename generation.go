@@ -86,7 +86,7 @@ func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openr
 	}
 
 	if generation.Image != nil && model.Vision {
-		msg, err := ReadImageAsCompletionMessage(*generation.Image)
+		msg, err := ReadImageAsCompletionMessage(*generation.Image, model.UseCompatibility)
 		if err != nil {
 			return request, err
 		}

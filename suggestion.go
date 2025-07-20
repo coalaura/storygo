@@ -85,7 +85,7 @@ func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openr
 	}
 
 	if suggestion.Image != nil && model.Vision {
-		msg, err := ReadImageAsCompletionMessage(*suggestion.Image)
+		msg, err := ReadImageAsCompletionMessage(*suggestion.Image, model.UseCompatibility)
 		if err != nil {
 			return request, err
 		}

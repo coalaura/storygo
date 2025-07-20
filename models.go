@@ -16,6 +16,8 @@ type Model struct {
 	Vision bool     `json:"vision"`
 	Reason bool     `json:"reason"`
 	Tags   []string `json:"tags"`
+
+	UseCompatibility bool `json:"-"`
 }
 
 var (
@@ -27,7 +29,7 @@ var (
 		// Google's flagship with vision, great for creative but logical stories.
 		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
 		// xAI's flagship with vision; powerful, less restricted, and creative.
-		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}),
+		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
 		// OpenAI's versatile model with vision, excels at conversational storytelling.
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
 		// A massive open model, excels at character-driven stories and dialogue.
@@ -61,7 +63,7 @@ func (m *Model) SetReasoning(request *openrouter.ChatCompletionRequest) {
 	}
 }
 
-func NewModel(slug, name string, vision, reason bool, tags []string) *Model {
+func NewModel(slug, name string, vision, reason bool, tags []string, useCompatibility ...bool) *Model {
 	key := slug
 
 	if index := strings.Index(key, "/"); index != -1 {
@@ -75,6 +77,8 @@ func NewModel(slug, name string, vision, reason bool, tags []string) *Model {
 		Vision: vision,
 		Reason: reason,
 		Tags:   tags,
+
+		UseCompatibility: len(useCompatibility) > 0 && useCompatibility[0],
 	}
 }
 

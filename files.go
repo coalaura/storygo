@@ -1,20 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"image/jpeg"
 	"os"
 
+	"github.com/gen2brain/webp"
 	"github.com/revrost/go-openrouter"
 )
 
-func ReadImageJpegData(hash string) ([]byte, error) {
+func ReadImageWebpData(hash string) ([]byte, error) {
 	if !IsHashValid(hash) {
 		return nil, errors.New("invalid hash")
 	}
 
-	return os.ReadFile(ImageJpegPath(hash))
+	return os.ReadFile(ImageWebpPath(hash))
 }
 
 func ReadImageTextData(hash string) (string, error) {
@@ -30,19 +33,40 @@ func ReadImageTextData(hash string) (string, error) {
 	return string(data), nil
 }
 
-func ReadImageAsDataURL(hash string) (string, error) {
-	data, err := ReadImageJpegData(hash)
+func ReadImageAsDataURL(hash string, useCompatibility bool) (string, error) {
+	data, err := ReadImageWebpData(hash)
 	if err != nil {
 		return "", err
 	}
 
+	mime := "webp"
+
+	if useCompatibility {
+		img, err := webp.Decode(bytes.NewReader(data))
+		if err != nil {
+			return "", err
+		}
+
+		var buf bytes.Buffer
+
+		err = jpeg.Encode(&buf, img, &jpeg.Options{
+			Quality: 90,
+		})
+		if err != nil {
+			return "", err
+		}
+
+		mime = "jpeg"
+		data = buf.Bytes()
+	}
+
 	b64 := base64.RawStdEncoding.EncodeToString(data)
 
-	return fmt.Sprintf("data:image/jpeg;base64,%s", b64), nil
+	return fmt.Sprintf("data:image/%s;base64,%s", mime, b64), nil
 }
 
-func ReadImageAsCompletionMessage(hash string) (*openrouter.ChatCompletionMessage, error) {
-	uri, err := ReadImageAsDataURL(hash)
+func ReadImageAsCompletionMessage(hash string, useCompatibility bool) (*openrouter.ChatCompletionMessage, error) {
+	uri, err := ReadImageAsDataURL(hash, useCompatibility)
 	if err != nil {
 		return nil, err
 	}
