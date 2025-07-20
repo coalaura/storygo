@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bytes"
 	_ "embed"
-	"encoding/base64"
 	"fmt"
 	"image"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -146,14 +143,15 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	defer file.Close()
 
-	var buf bytes.Buffer
-
-	writer := io.MultiWriter(file, &buf)
-
-	err = webp.Encode(writer, img, webp.Options{
+	err = webp.Encode(file, img, webp.Options{
 		Quality: 95,
 		Method:  4,
 	})
+	if err != nil {
+		return err
+	}
+
+	uri, err := ReadImageAsDataURL(hash, VisionModelUseCompatibility)
 	if err != nil {
 		return err
 	}
@@ -181,7 +179,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 						{
 							Type: openrouter.ChatMessagePartTypeImageURL,
 							ImageURL: &openrouter.ChatMessageImageURL{
-								URL:    "data:image/webp;base64," + base64.StdEncoding.EncodeToString(buf.Bytes()),
+								URL:    uri,
 								Detail: openrouter.ImageURLDetailHigh,
 							},
 						},

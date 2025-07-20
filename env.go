@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	OpenRouterToken string
-	VisionModel     string
+	OpenRouterToken             string
+	VisionModel                 string
+	VisionModelUseCompatibility bool
 )
 
 func init() {
@@ -22,6 +23,8 @@ func init() {
 	if VisionModel = os.Getenv("VISION_MODEL"); VisionModel == "" {
 		VisionModel = "qwen/qwen2.5-vl-32b-instruct"
 	}
+
+	VisionModelUseCompatibility = os.Getenv("VISION_MODEL") == "true"
 
 	log.Debugf("Vision-Model: %s\n", VisionModel)
 }
