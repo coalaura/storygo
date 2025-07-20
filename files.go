@@ -60,7 +60,7 @@ func ReadImageAsDataURL(hash string, useCompatibility bool) (string, error) {
 		data = buf.Bytes()
 	}
 
-	b64 := base64.RawStdEncoding.EncodeToString(data)
+	b64 := base64.StdEncoding.EncodeToString(data)
 
 	return fmt.Sprintf("data:image/%s;base64,%s", mime, b64), nil
 }

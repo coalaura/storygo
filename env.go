@@ -24,7 +24,8 @@ func init() {
 		VisionModel = "qwen/qwen2.5-vl-32b-instruct"
 	}
 
-	VisionModelUseCompatibility = os.Getenv("VISION_MODEL") == "true"
+	VisionModelUseCompatibility = os.Getenv("VISION_MODEL_USE_COMPATIBILITY") == "true"
 
 	log.Debugf("Vision-Model: %s\n", VisionModel)
+	log.Debugf("Vision-Comp.: %v\n", VisionModelUseCompatibility)
 }

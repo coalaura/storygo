@@ -136,24 +136,14 @@ func DescribeImage(hash string, img image.Image, details string) error {
 		os.Mkdir("images", 0755)
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	err = webp.Encode(file, img, webp.Options{
-		Quality: 95,
-		Method:  4,
-	})
+	err := EncodeWebP(img, path)
 	if err != nil {
 		return err
 	}
 
 	uri, err := ReadImageAsDataURL(hash, VisionModelUseCompatibility)
 	if err != nil {
-		defer os.Remove(path)
+		os.Remove(path)
 
 		return err
 	}
@@ -193,7 +183,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	completion, err := OpenRouterRunCompletion(request)
 	if err != nil {
-		defer os.Remove(path)
+		os.Remove(path)
 
 		return err
 	}
@@ -201,6 +191,27 @@ func DescribeImage(hash string, img image.Image, details string) error {
 	path = ImageTextPath(hash)
 
 	return os.WriteFile(path, []byte(completion.Choices[0].Message.Content.Text), 0644)
+}
+
+func EncodeWebP(img image.Image, path string) error {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	err = webp.Encode(file, img, webp.Options{
+		Quality: 95,
+		Method:  4,
+	})
+	if err != nil {
+		os.Remove(path)
+
+		return err
+	}
+
+	return nil
 }
 
 func ImageWebpPath(hash string) string {
