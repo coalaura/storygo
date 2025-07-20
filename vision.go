@@ -4,7 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"image"
 	"io"
@@ -190,9 +189,6 @@ func DescribeImage(hash string, img image.Image, details string) error {
 			},
 		},
 	}
-
-	jsn, _ := json.Marshal(request)
-	os.WriteFile("test.json", jsn, 0755)
 
 	completion, err := OpenRouterRunCompletion(request)
 	if err != nil {
