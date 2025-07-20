@@ -505,7 +505,7 @@
 			docHeight = doc.internal.pageSize.height;
 
 		const margin = 15,
-			lineHeight = 5,
+			lineHeight = docHeight / 62,
 			gutter = 4,
 			maxWidth = docWidth - margin * 2;
 
@@ -552,9 +552,10 @@
 					textWidth = maxWidth;
 
 				while (remainingText.length > 0) {
-					if (innerY + lineHeight > docHeight - margin) {
+					if (nextY + lineHeight > docHeight - margin) {
 						doc.addPage();
 
+						y = margin;
 						nextY = margin;
 					}
 
@@ -586,7 +587,7 @@
 					maxWidth: textWidth,
 				});
 
-				y = nextY;
+				y += section.length * lineHeight;
 			}
 
 			y += lineHeight / 2;
