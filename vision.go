@@ -153,6 +153,8 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	uri, err := ReadImageAsDataURL(hash, VisionModelUseCompatibility)
 	if err != nil {
+		defer os.Remove(path)
+
 		return err
 	}
 
@@ -191,6 +193,8 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	completion, err := OpenRouterRunCompletion(request)
 	if err != nil {
+		defer os.Remove(path)
+
 		return err
 	}
 

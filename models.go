@@ -48,7 +48,7 @@ func (m *Model) Path(path string) string {
 		slug = slug[index+1:]
 	}
 
-	return filepath.Join("images", path)
+	return filepath.Join("images", slug)
 }
 
 func (m *Model) SetReasoning(request *openrouter.ChatCompletionRequest) {
