@@ -539,7 +539,19 @@
 		}
 
 		let y = margin,
+			pages = 1,
 			passed;
+
+		function renderFooter() {
+			const footerY = docHeight - margin + (lineHeight / 2);
+
+			doc.text(pages.toString(), docWidth - margin, footerY, {
+				baseline: "top",
+				align: "right",
+			});
+		}
+
+		renderFooter();
 
 		const paragraphs = text.split(/(\r?\n)+/g).map((p) => p.trim());
 
@@ -554,6 +566,9 @@
 				while (remainingText.length > 0) {
 					if (nextY + lineHeight > docHeight - margin) {
 						doc.addPage();
+						pages++;
+
+						renderFooter();
 
 						y = margin;
 						nextY = margin;
