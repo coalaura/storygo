@@ -13,7 +13,7 @@ var log = logger.New().DetectTerminal().WithOptions(logger.Options{
 })
 
 func main() {
-	log.Debug("Starting...\r")
+	log.Debugf("Starting...\r")
 
 	r := chi.NewRouter()
 
