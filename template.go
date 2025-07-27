@@ -24,6 +24,8 @@ type GenerationTemplate struct {
 	Story     string
 	Image     string
 	Empty     bool
+
+	Extra map[string]any
 }
 
 var (
@@ -32,6 +34,7 @@ var (
 	GenerationTmpl *template.Template
 	SuggestionTmpl *template.Template
 	OverviewTmpl   *template.Template
+	ImagesTmpl     *template.Template
 )
 
 func init() {
@@ -51,6 +54,11 @@ func init() {
 	log.MustPanic(err)
 
 	OverviewTmpl = ovr
+
+	img, err := template.New("images").Parse(PromptImages)
+	log.MustPanic(err)
+
+	ImagesTmpl = img
 }
 
 func (g *GenerationRequest) Clean(trim bool) {
@@ -68,13 +76,14 @@ func (g *GenerationRequest) TagList() string {
 	return fmt.Sprintf("\"%s\"", strings.Join(g.Tags, "\", \""))
 }
 
-func BuildPrompt(model *Model, tmpl *template.Template, request *GenerationRequest) (string, error) {
+func BuildPrompt(model *Model, tmpl *template.Template, request *GenerationRequest, extra map[string]any) (string, error) {
 	data := GenerationTemplate{
 		Tags:      request.TagList(),
 		Context:   request.Context,
 		Story:     request.Text,
 		Direction: request.Direction,
 		Empty:     request.Text == "",
+		Extra:     extra,
 	}
 
 	if request.Image != nil && !model.Vision {

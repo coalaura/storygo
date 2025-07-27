@@ -75,7 +75,7 @@ func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openr
 
 	model.SetReasoning(&request)
 
-	prompt, err := BuildPrompt(model, SuggestionTmpl, suggestion)
+	prompt, err := BuildPrompt(model, SuggestionTmpl, suggestion, nil)
 	if err != nil {
 		return request, err
 	}

@@ -76,7 +76,7 @@ func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openr
 
 	model.SetReasoning(&request)
 
-	prompt, err := BuildPrompt(model, GenerationTmpl, generation)
+	prompt, err := BuildPrompt(model, GenerationTmpl, generation, nil)
 	if err != nil {
 		return request, err
 	}

@@ -75,7 +75,7 @@ func CreateOverviewRequest(model *Model, overview *GenerationRequest) (openroute
 
 	model.SetReasoning(&request)
 
-	prompt, err := BuildPrompt(model, OverviewTmpl, overview)
+	prompt, err := BuildPrompt(model, OverviewTmpl, overview, nil)
 	if err != nil {
 		return request, err
 	}
