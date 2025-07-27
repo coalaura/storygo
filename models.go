@@ -18,22 +18,59 @@ type Model struct {
 	UseCompatibility bool `json:"-"`
 }
 
-var Models = []*Model{
-	// Excellent unmoderated model for creative writing, a great default.
-	NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
-	// The best choice for high-quality, literary prose and safe content.
-	NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
-	// Google's flagship with vision, great for creative but logical stories.
-	NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
-	// xAI's flagship with vision; powerful, less restricted, and creative.
-	NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
-	// OpenAI's versatile model with vision, excels at conversational storytelling.
-	NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
-	// A massive open model, excels at character-driven stories and dialogue.
-	NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
-	// A top-tier open model with exceptional literary writing performance.
-	NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
+type ImageModel struct {
+	Key    string   `json:"key"`
+	Slug   string   `json:"slug"`
+	Name   string   `json:"name"`
+	Vision bool     `json:"vision"`
+	Tags   []string `json:"tags"`
 }
+
+var (
+	Models = []*Model{
+		// Excellent unmoderated model for creative writing, a great default.
+		NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
+		// The best choice for high-quality, literary prose and safe content.
+		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
+		// Google's flagship with vision, great for creative but logical stories.
+		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
+		// xAI's flagship with vision; powerful, less restricted, and creative.
+		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
+		// OpenAI's versatile model with vision, excels at conversational storytelling.
+		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
+		// A massive open model, excels at character-driven stories and dialogue.
+		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
+		// A top-tier open model with exceptional literary writing performance.
+		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
+	}
+
+	ImageModels = []*ImageModel{
+		// Google's newest photoreal SOTA; superb quality, but heavily moderated
+		NewImageModel("google/imagen-4-ultra", "Imagen-4 Ultra", false, []string{"moderated", "quality"}),
+		// OpenAI's flagship multimodal creator; great at following complex prompts & edits
+		NewImageModel("openai/gpt-image-1", "GPT-Image-1", false, []string{"creative", "structured"}),
+		// Black-Forest Labs 4-MP monster; "Ultra" mode for max detail, Raw for realism, unmoderated
+		NewImageModel("black-forest-labs/flux-1.1-pro-ultra", "Flux 1.1 Pro Ultra", false, []string{"unmoderated", "quality"}),
+		// Fast 4-step SD3.5 distill; good balance of speed and realism
+		NewImageModel("stability-ai/stable-diffusion-3.5-large-turbo", "SD-3.5 Large Turbo", false, []string{"fast", "versatile"}),
+		// ByteDance's bilingual model; excels at layout & short text in images
+		NewImageModel("bytedance/seedream-3", "Seedream 3", false, []string{"creative", "structured"}),
+		// Flux "schnell" = 1-4-step speed demon; great for cheap drafts, unmoderated
+		NewImageModel("black-forest-labs/flux-schnell", "Flux Schnell", false, []string{"fast", "unmoderated"}),
+		// Ideogram's turbo tier; best in class for legible embedded text
+		NewImageModel("ideogram-ai/ideogram-v3-turbo", "Ideogram v3 Turbo", false, []string{"structured", "fast"}),
+		// Recraft V3 for vector / logo / SVG-style outputs
+		NewImageModel("recraft-ai/recraft-v3", "Recraft V3", false, []string{"creative", "structured"}),
+	}
+
+	ImageStyles = []string{
+		"Photorealism",
+		"Anime",
+		"Graphic Design",
+		"Painterly",
+		"Concept Art",
+	}
+)
 
 func (m *Model) Path(path string) string {
 	slug := m.Slug
@@ -73,6 +110,22 @@ func NewModel(slug, name string, vision, reason bool, tags []string, useCompatib
 		Tags:   tags,
 
 		UseCompatibility: len(useCompatibility) > 0 && useCompatibility[0],
+	}
+}
+
+func NewImageModel(slug, name string, vision bool, tags []string) *ImageModel {
+	key := slug
+
+	if i := strings.Index(key, "/"); i != -1 {
+		key = key[i+1:]
+	}
+
+	return &ImageModel{
+		Key:    key,
+		Slug:   slug,
+		Name:   name,
+		Vision: vision,
+		Tags:   tags,
 	}
 }
 

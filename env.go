@@ -9,6 +9,7 @@ import (
 
 var (
 	OpenRouterToken             string
+	ReplicateToken              string
 	VisionModel                 string
 	VisionModelUseCompatibility bool
 )
@@ -18,6 +19,10 @@ func init() {
 
 	if OpenRouterToken = os.Getenv("OPENROUTER_TOKEN"); OpenRouterToken == "" {
 		log.Panic(errors.New("missing openrouter token"))
+	}
+
+	if ReplicateToken = os.Getenv("REPLICATE_TOKEN"); ReplicateToken == "" {
+		log.Warning("No replicate key configured")
 	}
 
 	if VisionModel = os.Getenv("VISION_MODEL"); VisionModel == "" {
