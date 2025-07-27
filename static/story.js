@@ -20,6 +20,13 @@
 		$suggest = document.getElementById("suggest"),
 		$generate = document.getElementById("generate");
 
+	const $modal = document.getElementById("modal"),
+		$mdBackground = $modal.querySelector(".modal-background"),
+		$mdTitle = $modal.querySelector(".modal-title"),
+		$mdBody = $modal.querySelector(".modal-body"),
+		$mdCancel = document.getElementById("modal-cancel"),
+		$mdConfirm = document.getElementById("modal-confirm");
+
 	let uploading,
 		generating,
 		suggesting,
@@ -454,6 +461,64 @@
 		);
 	}
 
+	let mdCallback;
+
+	$mdBackground.addEventListener("click", () => {
+		$modal.classList.remove("open");
+
+		mdCallback?.(false);
+		mdCallback = null;
+	});
+
+	$mdCancel.addEventListener("click", () => {
+		$modal.classList.remove("open");
+
+		mdCallback?.(false);
+		mdCallback = null;
+	});
+
+	$mdConfirm.addEventListener("click", () => {
+		$modal.classList.remove("open");
+
+		if (!mdCallback) return;
+
+		const data = {};
+
+		$mdBody.querySelectorAll("input,select").forEach(input => {
+			const name = input.name,
+				value = input.value.trim();
+
+			data[name] = value;
+		});
+
+		mdCallback(data);
+		mdCallback = null;
+	});
+
+	function modal(title, content, buttons) {
+		mdCallback?.(false);
+
+		return new Promise(resolve => {
+			mdCallback = resolve;
+
+			$mdTitle.textContent = title;
+			$mdBody.innerHTML = content;
+
+			if (!buttons?.length) {
+				buttons = ["Cancel", "Confirm"];
+			}
+
+			$mdCancel.textContent = buttons[0];
+			$mdConfirm.textContent = buttons[1];
+
+			$modal.classList.add("open");
+		});
+	}
+
+	async function confirm(title, question) {
+		return await modal(title, `<p>${question}</p>`, ["No", "Yes"]) !== false;
+	}
+
 	$generate.addEventListener("click", async () => {
 		if (generating) {
 			controller?.abort?.();
@@ -464,16 +529,12 @@
 		generate(mode, false);
 	});
 
-	$mode.addEventListener("click", () => {
+	$mode.addEventListener("click", async () => {
 		if (generating || suggesting) return;
 
-		if (
-			$text.value.trim() &&
-			!confirm(
-				"Are you sure you want to switch modes? This will clear the story field.",
-			)
-		)
+		if ($text.value.trim() && !await confirm("Switch Modes", "Are you sure you want to switch modes? This will clear the story field.")){
 			return;
+		}
 
 		$text.value = "";
 
@@ -706,15 +767,12 @@
 		reader.readAsText(file);
 	});
 
-	$delete.addEventListener("click", () => {
+	$delete.addEventListener("click", async () => {
 		if (uploading || generating || suggesting) return;
 
-		if (
-			!confirm(
-				"Are you sure you want to clear the story, context, directions and image?",
-			)
-		)
+		if (!await confirm("Clear Data", "Are you sure you want to clear the story, context, directions and image?")){
 			return;
+		}
 
 		$context.value = "";
 		$text.value = "";

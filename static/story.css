@@ -324,6 +324,74 @@ input[type="text"] {
 	background-image: url(icons/delete.svg);
 }
 
+.modal-background,
+#modal {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+#modal:not(.open) {
+	display: none;
+}
+
+.modal-background {
+	backdrop-filter: blur(12px);
+}
+
+.modal-content {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	padding: 15px 18px;
+	border: 1px solid #5b6078;
+	background: #24273a;
+	box-shadow: 2px 2px 26px 5px rgba(0, 0, 0, 0.4);
+	z-index: 2;
+	width: 600px;
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.modal-title {
+	font-size: 22px;
+	font-weight: 600;
+}
+
+.modal-body p {
+	margin: 0;
+}
+
+.modal-buttons {
+	display: flex;
+	gap: 8px;
+	justify-content: end;
+}
+
+.modal-buttons button {
+	color: #181926;
+	padding: 4px 8px;
+	transition: 150ms;
+}
+
+.modal-buttons button:hover {
+	filter: brightness(0.85) contrast(1.1);
+}
+
+#modal-confirm {
+	background: #a6da95;
+}
+
+#modal-cancel {
+	background: #ed8796;
+}
+
 @keyframes rotating {
 	from {
 		transform: translate(-50%, -50%) rotate(0deg);
