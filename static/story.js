@@ -495,51 +495,14 @@
 		mdCallback = null;
 	});
 
-	function modal(title, content, buttons) {
+	function modal(title, html, buttons) {
 		mdCallback?.(false);
 
 		return new Promise((resolve) => {
 			mdCallback = resolve;
 
 			$mdTitle.textContent = title;
-			$mdBody.innerHTML = "";
-
-			for (const el of content) {
-				let $el;
-
-				switch (el.type) {
-					case "text":
-						$el = document.createElement("p");
-
-						$el.textContent = el.text;
-
-						break;
-					case "input":
-						$el = document.createElement("input");
-
-						$el.name = el.name;
-						$el.type = el.number ? "number" : "text";
-
-						break;
-					case "select":
-						$el = document.createElement("select");
-
-						$el.name = el.name;
-
-						for (const opt of el.options) {
-							const $opt = document.createElement("option");
-
-							$opt.value = opt[0];
-							$opt.textContent = opt[1];
-
-							$el.appendChild($opt);
-						}
-
-						break;
-				}
-
-				$mdBody.appendChild($el);
-			}
+			$mdBody.innerHTML = html;
 
 			if (!buttons?.length) {
 				buttons = ["Cancel", "Confirm"];
@@ -556,7 +519,7 @@
 		return (
 			(await modal(
 				title,
-				[{ type: "text", text: question }],
+				`<p>${question}</p>`,
 				["No", "Yes"],
 			)) !== false
 		);
@@ -565,10 +528,7 @@
 	async function prompt(title, question) {
 		const data = await modal(
 			title,
-			[
-				{ type: "text", text: question },
-				{ type: "input", name: "prompt" },
-			],
+			`<p>${question}</p><input type="text" name="prompt" />`,
 			["Cancel", "Confirm"],
 		);
 
