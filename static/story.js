@@ -484,7 +484,7 @@
 
 		const data = {};
 
-		$mdBody.querySelectorAll("input,select").forEach(input => {
+		$mdBody.querySelectorAll("input,select").forEach((input) => {
 			const name = input.name,
 				value = input.value.trim();
 
@@ -498,11 +498,48 @@
 	function modal(title, content, buttons) {
 		mdCallback?.(false);
 
-		return new Promise(resolve => {
+		return new Promise((resolve) => {
 			mdCallback = resolve;
 
 			$mdTitle.textContent = title;
-			$mdBody.innerHTML = content;
+			$mdBody.innerHTML = "";
+
+			for (const el of content) {
+				let $el;
+
+				switch (el.type) {
+					case "text":
+						$el = document.createElement("p");
+
+						$el.textContent = el.text;
+
+						break;
+					case "input":
+						$el = document.createElement("input");
+
+						$el.name = el.name;
+						$el.type = el.number ? "number" : "text";
+
+						break;
+					case "select":
+						$el = document.createElement("select");
+
+						$el.name = el.name;
+
+						for (const opt of el.options) {
+							const $opt = document.createElement("option");
+
+							$opt.value = opt[0];
+							$opt.textContent = opt[1];
+
+							$el.appendChild($opt);
+						}
+
+						break;
+				}
+
+				$mdBody.appendChild($el);
+			}
 
 			if (!buttons?.length) {
 				buttons = ["Cancel", "Confirm"];
@@ -516,7 +553,30 @@
 	}
 
 	async function confirm(title, question) {
-		return await modal(title, `<p>${question}</p>`, ["No", "Yes"]) !== false;
+		return (
+			(await modal(
+				title,
+				[{ type: "text", text: question }],
+				["No", "Yes"],
+			)) !== false
+		);
+	}
+
+	async function prompt(title, question) {
+		const data = await modal(
+			title,
+			[
+				{ type: "text", text: question },
+				{ type: "input", name: "prompt" },
+			],
+			["No", "Yes"],
+		);
+
+		if (data === false) {
+			return false;
+		}
+
+		return data?.prompt || "";
 	}
 
 	$generate.addEventListener("click", async () => {
@@ -532,7 +592,13 @@
 	$mode.addEventListener("click", async () => {
 		if (generating || suggesting) return;
 
-		if ($text.value.trim() && !await confirm("Switch Modes", "Are you sure you want to switch modes? This will clear the story field.")){
+		if (
+			$text.value.trim() &&
+			!(await confirm(
+				"Switch Modes",
+				"Are you sure you want to switch modes? This will clear the story field.",
+			))
+		) {
 			return;
 		}
 
@@ -604,7 +670,7 @@
 			passed;
 
 		function renderFooter() {
-			const footerY = docHeight - margin + (lineHeight / 2);
+			const footerY = docHeight - margin + lineHeight / 2;
 
 			doc.text(pages.toString(), docWidth - margin, footerY, {
 				baseline: "top",
@@ -770,7 +836,12 @@
 	$delete.addEventListener("click", async () => {
 		if (uploading || generating || suggesting) return;
 
-		if (!await confirm("Clear Data", "Are you sure you want to clear the story, context, directions and image?")){
+		if (
+			!(await confirm(
+				"Clear Data",
+				"Are you sure you want to clear the story, context, directions and image?",
+			))
+		) {
 			return;
 		}
 
@@ -801,14 +872,17 @@
 			return;
 		}
 
+		const details = await prompt("Image Details", "Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)");
+
+		if (details === false) {
+			return;
+		}
+
 		setUploading(true);
 
 		const form = new FormData();
 
-		form.append(
-			"details",
-			prompt("Important details in the image (optional)", "") || "",
-		);
+		form.append("details", details);
 		form.append("image", file);
 
 		let hash;
