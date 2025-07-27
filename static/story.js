@@ -147,7 +147,7 @@
 	function setModel(set) {
 		const models = [...$model.querySelectorAll(".model")];
 
-		if (!models.find(el => el.dataset.key === set)) {
+		if (!models.find((el) => el.dataset.key === set)) {
 			set = models[0];
 		}
 
@@ -453,6 +453,27 @@
 
 			$mdTitle.textContent = title;
 			$mdBody.innerHTML = html;
+
+			$mdBody.querySelectorAll(".dropdown").forEach((dd) => {
+				const models = [...dd.querySelectorAll(".model")];
+
+				models[0].classList.add("selected");
+
+				dd.addEventListener("click", (event) => {
+					const close = event.target.closest(".model"),
+						key = close?.dataset?.key;
+
+					if (!key) return;
+
+					for (const el of models) {
+						if (el.dataset.key === key) {
+							el.classList.add("selected");
+						} else {
+							el.classList.remove("selected");
+						}
+					}
+				});
+			});
 
 			if (!buttons?.length) {
 				buttons = ["Cancel", "Confirm"];

@@ -21,16 +21,13 @@
 					World Bible
 
 					<div id="model" class="dropdown">
-						{{- range . }}
+						{{- range .models }}
 							<div class="model" data-key="{{ .Key }}">
 								<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
 
 								<div class="tags">
 									{{- range .Tags }}
-										<div class="tag"
-											title="{{ . }}"
-											style="background-image:url('/icons/tags/{{ . }}.svg')">
-										</div>
+										<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
 									{{- end }}
 								</div>
 							</div>
@@ -107,6 +104,22 @@
 			</div>
 			<div class="modal-background"></div>
 		</div>
+
+		<script>
+			const Images = `<div id="images" class="dropdown">
+				{{- range .images }}
+					<div class="model" data-key="{{ .Key }}">
+						<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
+
+						<div class="tags">
+							{{- range .Tags }}
+								<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
+							{{- end }}
+						</div>
+					</div>
+				{{- end }}
+			</div>`;
+		</script>
 
 		<script src="jspdf.min.js"></script>
 		<script src="dai.js"></script>

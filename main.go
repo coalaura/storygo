@@ -20,7 +20,10 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		err := IndexTmpl.Execute(w, Models)
+		err := IndexTmpl.Execute(w, map[string]any{
+			"models": Models,
+			"images": ImageModels,
+		})
 
 		if err != nil {
 			RespondWithText(w, http.StatusInternalServerError, err.Error())
