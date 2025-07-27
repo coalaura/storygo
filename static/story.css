@@ -344,7 +344,7 @@ input[type="text"] {
 .modal-content {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 	position: absolute;
 	top: 50%;
 	left: 50%;
@@ -364,8 +364,19 @@ input[type="text"] {
 	font-weight: 600;
 }
 
+.modal-body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
 .modal-body p {
 	margin: 0;
+}
+
+.modal-body input,
+.modal-body select {
+	background: #363a4f;
 }
 
 .modal-buttons {
