@@ -569,7 +569,7 @@
 				{ type: "text", text: question },
 				{ type: "input", name: "prompt" },
 			],
-			["No", "Yes"],
+			["Cancel", "Confirm"],
 		);
 
 		if (data === false) {
