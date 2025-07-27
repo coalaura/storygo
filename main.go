@@ -19,10 +19,17 @@ func main() {
 
 	r.Use(middleware.Recoverer)
 
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		err := IndexTmpl.Execute(w, Models)
+
+		if err != nil {
+			RespondWithText(w, http.StatusInternalServerError, err.Error())
+		}
+	})
+
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/*", http.StripPrefix("/", fs))
 
-	r.Get("/models", HandleModelsServe)
 	r.Get("/image/{hash}", HandleImageServe)
 
 	r.Post("/upload", HandleImageUpload)

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	html "html/template"
 	"strings"
 	"text/template"
 )
@@ -26,12 +27,16 @@ type GenerationTemplate struct {
 }
 
 var (
+	IndexTmpl *html.Template
+
 	GenerationTmpl *template.Template
 	SuggestionTmpl *template.Template
 	OverviewTmpl   *template.Template
 )
 
 func init() {
+	IndexTmpl = html.Must(html.ParseFiles("static/index.html"))
+
 	gen, err := template.New("generation").Parse(PromptGeneration)
 	log.MustPanic(err)
 

@@ -144,74 +144,24 @@
 		$tags.appendChild(tag);
 	}
 
-	const modelList = [];
-
 	function setModel(set) {
-		if (!modelList.find((entry) => entry.key === set)) {
-			set = modelList[0].key;
+		const models = [...$model.querySelectorAll(".model")];
+
+		if (!models.find(el => el.dataset.key === set)) {
+			set = models[0];
 		}
 
 		model = set;
 
-		for (const entry of modelList) {
-			const { key, element } = entry;
-
-			if (key === model) {
-				element.classList.add("selected");
+		for (const el of models) {
+			if (el.dataset.key === model) {
+				el.classList.add("selected");
 			} else {
-				element.classList.remove("selected");
+				el.classList.remove("selected");
 			}
 		}
 
 		store("model", model);
-	}
-
-	function buildModels(models) {
-		for (const entry of models) {
-			const element = document.createElement("div");
-
-			element.classList.add("model");
-
-			const name = document.createElement("div");
-
-			name.textContent = entry.name;
-			name.classList.add("name");
-
-			if (entry.vision) {
-				name.classList.add("vision");
-			}
-
-			element.appendChild(name);
-
-			const tags = document.createElement("div");
-
-			tags.classList.add("tags");
-
-			for (const tag of entry.tags) {
-				const el = document.createElement("div");
-
-				el.title = tag;
-				el.style.backgroundImage = `url("/icons/tags/${tag}.svg")`;
-				el.classList.add("tag");
-
-				tags.appendChild(el);
-			}
-
-			element.appendChild(tags);
-
-			$model.appendChild(element);
-
-			element.addEventListener("click", () => {
-				setModel(entry.key);
-			});
-
-			modelList.push({
-				key: entry.key,
-				element: element,
-			});
-		}
-
-		setModel(load("model", null));
 	}
 
 	function buildTags() {
@@ -516,13 +466,7 @@
 	}
 
 	async function confirm(title, question) {
-		return (
-			(await modal(
-				title,
-				`<p>${question}</p>`,
-				["No", "Yes"],
-			)) !== false
-		);
+		return (await modal(title, `<p>${question}</p>`, ["No", "Yes"])) !== false;
 	}
 
 	async function prompt(title, question) {
@@ -538,6 +482,14 @@
 
 		return data?.prompt || "";
 	}
+
+	$model.addEventListener("click", (event) => {
+		const close = event.target.closest(".model");
+
+		if (!close) return;
+
+		setModel(close.dataset.key);
+	});
 
 	$generate.addEventListener("click", async () => {
 		if (generating) {
@@ -832,7 +784,10 @@
 			return;
 		}
 
-		const details = await prompt("Image Details", "Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)");
+		const details = await prompt(
+			"Image Details",
+			"Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)",
+		);
 
 		if (details === false) {
 			return;
@@ -955,6 +910,7 @@
 
 	$text.scrollTop = $text.scrollHeight;
 
+	setModel(load("model", null));
 	setImage(load("image", null));
 	setMode(load("mode", null));
 
@@ -965,8 +921,4 @@
 			appendTag(tag);
 		}
 	}
-
-	fetch("/models")
-		.then((response) => response.json())
-		.then(buildModels);
 })();

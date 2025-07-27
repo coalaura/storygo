@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -20,26 +18,22 @@ type Model struct {
 	UseCompatibility bool `json:"-"`
 }
 
-var (
-	Models = []*Model{
-		// Excellent unmoderated model for creative writing, a great default.
-		NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
-		// The best choice for high-quality, literary prose and safe content.
-		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
-		// Google's flagship with vision, great for creative but logical stories.
-		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
-		// xAI's flagship with vision; powerful, less restricted, and creative.
-		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
-		// OpenAI's versatile model with vision, excels at conversational storytelling.
-		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
-		// A massive open model, excels at character-driven stories and dialogue.
-		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
-		// A top-tier open model with exceptional literary writing performance.
-		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
-	}
-
-	ModelList, _ = json.Marshal(Models)
-)
+var Models = []*Model{
+	// Excellent unmoderated model for creative writing, a great default.
+	NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
+	// The best choice for high-quality, literary prose and safe content.
+	NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
+	// Google's flagship with vision, great for creative but logical stories.
+	NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
+	// xAI's flagship with vision; powerful, less restricted, and creative.
+	NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
+	// OpenAI's versatile model with vision, excels at conversational storytelling.
+	NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
+	// A massive open model, excels at character-driven stories and dialogue.
+	NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
+	// A top-tier open model with exceptional literary writing performance.
+	NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
+}
 
 func (m *Model) Path(path string) string {
 	slug := m.Slug
@@ -90,11 +84,4 @@ func GetModel(key string) *Model {
 	}
 
 	return nil
-}
-
-func HandleModelsServe(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	w.Write(ModelList)
 }

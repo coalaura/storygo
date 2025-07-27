@@ -20,7 +20,22 @@
 				<h2 class="relative">
 					World Bible
 
-					<div id="model" class="dropdown"></div>
+					<div id="model" class="dropdown">
+						{{- range . }}
+							<div class="model" data-key="{{ .Key }}">
+								<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
+
+								<div class="tags">
+									{{- range .Tags }}
+										<div class="tag"
+											title="{{ . }}"
+											style="background-image:url('/icons/tags/{{ . }}.svg')">
+										</div>
+									{{- end }}
+								</div>
+							</div>
+						{{- end }}
+					</div>
 				</h2>
 
 				<div class="flex">
