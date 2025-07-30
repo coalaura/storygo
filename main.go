@@ -20,6 +20,7 @@ func main() {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		err := IndexTmpl.Execute(w, map[string]any{
 			"models":    Models,
+			"images":    ImageModels,
 			"replicate": ReplicateToken != "",
 		})
 
@@ -35,6 +36,7 @@ func main() {
 
 	r.Post("/image/hash", HandleImageHash)
 	r.Post("/image/upload", HandleImageUpload)
+	r.Post("/image/create/{style}", HandleImageGenerate)
 
 	r.Post("/suggest", HandleSuggestion)
 	r.Post("/overview", HandleOverview)

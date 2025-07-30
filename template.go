@@ -54,6 +54,11 @@ func init() {
 	log.MustPanic(err)
 
 	OverviewTmpl = ovr
+
+	img, err := template.New("images").Parse(PromptImages)
+	log.MustPanic(err)
+
+	ImagesTmpl = img
 }
 
 func (g *GenerationRequest) Clean(trim bool) {
