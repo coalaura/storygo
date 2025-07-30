@@ -577,7 +577,7 @@
 			imageBottomY = 0;
 
 		if (image) {
-			const img = await preloadImage(`/image/${image}`);
+			const img = await preloadImage(`/i/${image}`);
 
 			if (img) {
 				const aspect = img.height / img.width;
@@ -824,7 +824,7 @@
 		let hash;
 
 		try {
-			const response = await fetch("/upload", {
+			const response = await fetch("/image/upload", {
 				method: "POST",
 				body: form,
 			});

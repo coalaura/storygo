@@ -114,3 +114,13 @@ func GetModel(key string) *Model {
 
 	return nil
 }
+
+func GetImageModel(key string) *Model {
+	for _, model := range ImageModels {
+		if model.Key == key {
+			return model
+		}
+	}
+
+	return nil
+}

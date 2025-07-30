@@ -32,9 +32,11 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/*", http.StripPrefix("/", fs))
 
-	r.Get("/image/{hash}", HandleImageServe)
+	r.Get("/i/{hash}", HandleImageServe)
 
-	r.Post("/upload", HandleImageUpload)
+	r.Post("/image/create/{style}", HandleImageGenerate)
+	r.Post("/image/upload", HandleImageUpload)
+
 	r.Post("/suggest", HandleSuggestion)
 	r.Post("/overview", HandleOverview)
 	r.Post("/generate", HandleGeneration)
