@@ -946,7 +946,7 @@
 		if (event.ctrlKey && event.key === "Enter") {
 			event.preventDefault();
 
-			$suggest.click();
+			$generate.click();
 		} else if (event.key === "Tab") {
 			event.preventDefault();
 
