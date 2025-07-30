@@ -13,8 +13,6 @@
 		<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet" />
 
 		<link rel="stylesheet" href="story.css" />
-
-		<script>const ImageGeneration = {{ if .replicate }}true{{ else }}false{{ end }}</script>
 	</head>
 	<body>
 		<div id="page">
@@ -106,22 +104,6 @@
 			</div>
 			<div class="modal-background"></div>
 		</div>
-
-		<script>
-			const Images = `<div id="images" class="dropdown">
-				{{- range .images }}
-					<div class="model" data-key="{{ .Key }}">
-						<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
-
-						<div class="tags">
-							{{- range .Tags }}
-								<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
-							{{- end }}
-						</div>
-					</div>
-				{{- end }}
-			</div>`;
-		</script>
 
 		<script src="jspdf.min.js"></script>
 		<script src="dai.js"></script>

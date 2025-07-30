@@ -61,7 +61,7 @@
 		image = hash;
 
 		if (image) {
-			const url = `/image/${image}`;
+			const url = `/i/${image}`;
 
 			$preview.classList.add("image");
 			$preview.style.backgroundImage = `url("${url}")`;
