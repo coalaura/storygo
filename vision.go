@@ -32,55 +32,17 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info("upload: new request")
 	defer log.Info("upload: finished request")
 
-	err := r.ParseMultipartForm(10 << 20)
+	input, hash, err := ReceiveImage(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("upload: failed to parse multipart form")
+		log.Warning("upload: failed to receive image")
 		log.WarningE(err)
 
 		return
 	}
 
 	details := r.FormValue("details")
-
-	file, _, err := r.FormFile("image")
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		log.Warning("upload: failed to read form file")
-		log.WarningE(err)
-
-		return
-	}
-
-	log.Debug("upload: decoding image")
-
-	input, _, err := image.Decode(file)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		log.Warning("upload: failed to decode image")
-		log.WarningE(err)
-
-		return
-	}
-
-	input = resize.Thumbnail(1024, 1024, input, resize.Lanczos3)
-
-	debugf("upload: hashing image")
-
-	perception, err := goimagehash.PerceptionHash(input)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		log.Warning("upload: failed to hash image")
-		log.WarningE(err)
-
-		return
-	}
-
-	hash := fmt.Sprintf("%x", perception.GetHash())
 
 	debugf("upload: describing image %q", hash)
 
@@ -95,6 +57,35 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	debugf("upload: finished image %q", hash)
+
+	RespondWithText(w, 200, hash)
+}
+
+func HandleImageHash(w http.ResponseWriter, r *http.Request) {
+	log.Info("hash: new request")
+	defer log.Info("hash: finished request")
+
+	_, hash, err := ReceiveImage(r)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+
+		log.Warning("hash: failed to receive image")
+		log.WarningE(err)
+
+		return
+	}
+
+	path := ImageWebpPath(hash)
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+
+		debugf("hash: image %q does not exist yet", hash)
+
+		return
+	}
+
+	debugf("hash: image %q already exists", hash)
 
 	RespondWithText(w, 200, hash)
 }
@@ -123,6 +114,40 @@ func HandleImageServe(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	RespondWithImage(w, file)
+}
+
+func ReceiveImage(r *http.Request) (image.Image, string, error) {
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		return nil, "", err
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		return nil, "", err
+	}
+
+	debugf("decoding image")
+
+	input, _, err := image.Decode(file)
+	if err != nil {
+		return nil, "", err
+	}
+
+	debugf("resizing image")
+
+	input = resize.Thumbnail(1024, 1024, input, resize.Lanczos3)
+
+	debugf("upload: hashing image")
+
+	perception, err := goimagehash.PerceptionHash(input)
+	if err != nil {
+		return nil, "", err
+	}
+
+	hash := fmt.Sprintf("%x", perception.GetHash())
+
+	return input, hash, nil
 }
 
 func DescribeImage(hash string, img image.Image, details string) error {

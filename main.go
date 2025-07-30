@@ -33,6 +33,7 @@ func main() {
 
 	r.Get("/i/{hash}", HandleImageServe)
 
+	r.Post("/image/hash", HandleImageHash)
 	r.Post("/image/upload", HandleImageUpload)
 
 	r.Post("/suggest", HandleSuggestion)

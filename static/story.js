@@ -411,6 +411,35 @@
 		);
 	}
 
+	async function imageExists(file) {
+		const form = new FormData();
+
+		form.append("image", file);
+
+		try {
+			const response = await fetch("/image/hash", {
+				method: "POST",
+				body: form,
+			});
+
+			if (!response.ok) {
+				if (response.status === 404) {
+					return false;
+				}
+
+				throw new Error(`Check failed with status ${response.status}`);
+			}
+
+			setImage(await response.text());
+
+			return true;
+		} catch (err) {
+			alert(`${err}`);
+		}
+
+		return false;
+	}
+
 	let mdCallback;
 
 	$mdBackground.addEventListener("click", () => {
@@ -805,21 +834,29 @@
 			return;
 		}
 
+		setUploading(true);
+
+		if (await imageExists(file)) {
+			setUploading(false);
+
+			return;
+		}
+
 		const details = await prompt(
 			"Image Details",
 			"Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)",
 		);
 
 		if (details === false) {
+			setUploading(false);
+
 			return;
 		}
 
-		setUploading(true);
-
 		const form = new FormData();
 
-		form.append("details", details);
 		form.append("image", file);
+		form.append("details", details);
 
 		let hash;
 
