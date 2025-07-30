@@ -29,6 +29,9 @@ var (
 )
 
 func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
+	log.Info("upload: new request")
+	defer log.Info("upload: finished request")
+
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -65,7 +68,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 
 	input = resize.Thumbnail(1024, 1024, input, resize.Lanczos3)
 
-	log.Debug("upload: hashing image")
+	debugf("upload: hashing image")
 
 	perception, err := goimagehash.PerceptionHash(input)
 	if err != nil {
@@ -79,7 +82,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 
 	hash := fmt.Sprintf("%x", perception.GetHash())
 
-	log.Debugf("upload: describing image (%s)\n", hash)
+	debugf("upload: describing image %q", hash)
 
 	err = DescribeImage(hash, input, details)
 	if err != nil {
@@ -91,7 +94,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debugf("upload: finished image (%s)\n", hash)
+	debugf("upload: finished image %q", hash)
 
 	RespondWithText(w, 200, hash)
 }
@@ -181,12 +184,18 @@ func DescribeImage(hash string, img image.Image, details string) error {
 		},
 	}
 
+	debugd("vision-request", &request)
+
+	debugf("upload: running completion")
+
 	completion, err := OpenRouterRunCompletion(request)
 	if err != nil {
 		os.Remove(path)
 
 		return err
 	}
+
+	debugd("vision-completion", &completion)
 
 	path = ImageTextPath(hash)
 

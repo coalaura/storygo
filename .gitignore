@@ -1,4 +1,4 @@
 *.env
-*.json
+_debug*
 
 images

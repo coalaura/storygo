@@ -14,6 +14,9 @@ var (
 )
 
 func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
+	log.Info("suggestion: new request")
+	defer log.Info("suggestion: finished request")
+
 	var suggestion GenerationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&suggestion); err != nil {
@@ -45,6 +48,10 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	debugd("suggestion-request", &request)
+
+	debugf("suggestion: starting completion stream")
 
 	ctx := r.Context()
 

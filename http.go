@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"errors"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/revrost/go-openrouter"
 )
@@ -38,53 +36,7 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	var (
-		finished bool
-		recv     = make(chan string)
-	)
-
-	go func() {
-		defer close(recv)
-
-		var reasoning bool
-
-		for {
-			response, err := stream.Recv()
-			if err != nil {
-				if finished || errors.Is(err, io.EOF) {
-					return
-				}
-
-				recv <- err.Error()
-
-				return
-			}
-
-			if len(response.Choices) == 0 {
-				continue
-			}
-
-			choice := response.Choices[0]
-
-			if choice.FinishReason == openrouter.FinishReasonContentFilter {
-				recv <- "[stopped due to content_filter]"
-
-				return
-			}
-
-			content := choice.Delta.Content
-
-			if content != "" {
-				recv <- content
-			} else if choice.Delta.Reasoning != nil {
-				if !reasoning {
-					reasoning = true
-
-					recv <- "\x00"
-				}
-			}
-		}
-	}()
+	rch, ech := ReceiveStream(stream, stop)
 
 	for {
 		select {
@@ -92,27 +44,20 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 			log.Debug("generation: client closed connection")
 
 			return
-		case chunk, ok := <-recv:
+		case err, ok := <-ech:
 			if !ok {
 				return
 			}
 
-			if stop != "" {
-				if index := strings.Index(chunk, stop); index != -1 {
-					chunk = chunk[:index]
-
-					finished = true
-
-					log.Debug("received stop word")
-				}
+			w.Write([]byte(err.Error()))
+			flusher.Flush()
+		case chunk, ok := <-rch:
+			if !ok {
+				return
 			}
 
 			w.Write([]byte(chunk))
 			flusher.Flush()
-
-			if finished {
-				return
-			}
 		}
 	}
 }

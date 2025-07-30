@@ -13,16 +13,15 @@ var log = logger.New().DetectTerminal().WithOptions(logger.Options{
 })
 
 func main() {
-	log.Debugf("Starting...\r")
-
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		err := IndexTmpl.Execute(w, map[string]any{
-			"models": Models,
-			"images": ImageModels,
+			"models":    Models,
+			"images":    ImageModels,
+			"replicate": ReplicateToken != "",
 		})
 
 		if err != nil {

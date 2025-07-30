@@ -13,10 +13,14 @@ var (
 	VisionModel                 string
 	ImagePromptModel            string
 	VisionModelUseCompatibility bool
+
+	Debug bool
 )
 
 func init() {
 	log.MustPanic(godotenv.Load())
+
+	Debug = os.Getenv("DEBUG") == "true"
 
 	if OpenRouterToken = os.Getenv("OPENROUTER_TOKEN"); OpenRouterToken == "" {
 		log.Panic(errors.New("missing openrouter token"))
@@ -39,4 +43,6 @@ func init() {
 	log.Debugf("Vision-Model: %s\n", VisionModel)
 	log.Debugf("Image-Model:  %s\n", ImagePromptModel)
 	log.Debugf("Vision-Comp.: %v\n", VisionModelUseCompatibility)
+
+	debugf("Debug mode enabled")
 }
