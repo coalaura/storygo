@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"io"
 	"net/http"
 
@@ -22,42 +21,15 @@ func RespondWithImage(w http.ResponseWriter, file io.Reader) {
 	io.Copy(w, file)
 }
 
-func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openrouter.ChatCompletionStream, stop string) {
-	flusher, ok := w.(http.Flusher)
-	if !ok {
+func RespondWithStream(w http.ResponseWriter, stream *openrouter.ChatCompletionStream, stop string) {
+	response, err := CreateResponseStream(w)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generation: failed to create flusher")
+		log.WarningE(err)
 
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	rch, ech := ReceiveStream(stream, stop)
-
-	for {
-		select {
-		case <-ctx.Done():
-			log.Debug("generation: client closed connection")
-
-			return
-		case err, ok := <-ech:
-			if !ok {
-				return
-			}
-
-			w.Write([]byte(err.Error()))
-			flusher.Flush()
-		case chunk, ok := <-rch:
-			if !ok {
-				return
-			}
-
-			w.Write([]byte(chunk))
-			flusher.Flush()
-		}
-	}
+	ReceiveStream(stream, stop, response)
 }

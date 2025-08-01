@@ -280,12 +280,7 @@
 
 		return value;
 	}
-
 	async function stream(url, options, callback) {
-		callback("status", "waiting");
-
-		let reasoning, receiving;
-
 		try {
 			const response = await fetch(url, options);
 
@@ -296,40 +291,51 @@
 			const reader = response.body.getReader(),
 				decoder = new TextDecoder();
 
+			let buffer = "";
+
 			while (true) {
 				const { value, done } = await reader.read();
 
 				if (done) break;
 
-				if (value.length === 1 && value[0] === 0) {
-					if (!reasoning) {
-						reasoning = true;
-
-						callback("status", "reasoning");
-					}
-
-					continue;
-				}
-
-				if (!receiving) {
-					receiving = true;
-
-					callback("status", "receiving");
-				}
-
-				const chunk = decoder.decode(value, {
+				buffer += decoder.decode(value, {
 					stream: true,
 				});
 
-				callback("chunk", chunk);
+				while (true) {
+					const idx = buffer.indexOf("\n\n");
+
+					if (idx === -1) {
+						break;
+					}
+
+					const frame = buffer.slice(0, idx).trim();
+					buffer = buffer.slice(idx + 2);
+
+					if (!frame) {
+						continue;
+					}
+
+					try {
+						const chunk = JSON.parse(frame);
+
+						if (!chunk) {
+							throw new Error("invalid chunk");
+						}
+
+						callback(chunk);
+					} catch (err) {
+						console.warn("bad frame", frame);
+						console.warn(err);
+					}
+				}
 			}
 		} catch (err) {
 			if (err.name !== "AbortError") {
 				alert(`${err}`);
 			}
 		} finally {
-			callback("status", false);
-			callback("finished");
+			callback(false);
 		}
 	}
 
@@ -363,6 +369,7 @@
 		}
 
 		_enable(true);
+		_status("sending");
 
 		controller = new AbortController();
 
@@ -378,35 +385,34 @@
 				body: JSON.stringify(payload),
 				signal: controller.signal,
 			},
-			(type, data) => {
-				switch (type) {
-					// Status update
-					case "status":
-						_status(data);
+			(chunk) => {
+				if (!chunk) {
+					_status(false);
 
-						break;
-					// Chunk received
-					case "chunk":
-						payload[_key] += data;
+					_enable(false);
 
-						_element.value = payload[_key];
-						_element.scrollTop = _element.scrollHeight;
+					payload[_key] = clean(dai.clean(payload[_key]));
 
-						store(_key, payload[_key]);
+					_element.value = payload[_key];
 
-						break;
-					// Finished
-					case "finished":
-						_enable(false);
+					store(_key, payload[_key]);
 
-						payload[_key] = clean(dai.clean(payload[_key]));
-
-						_element.value = payload[_key];
-
-						store(_key, payload[_key]);
-
-						break;
+					return;
 				}
+
+				if (chunk.state) {
+					_status(chunk.state);
+
+					return;
+				}
+
+				payload[_key] += chunk.text;
+
+				_element.value = payload[_key];
+				_element.scrollTop = _element.scrollHeight;
+
+				store(_key, payload[_key]);
+
 			},
 		);
 	}
