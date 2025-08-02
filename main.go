@@ -40,6 +40,7 @@ func main() {
 	r.Post("/image/upload", HandleImageUpload)
 	r.Post("/image/create/{style}", HandleImageGenerate)
 
+	r.Post("/tags", HandleTags)
 	r.Post("/suggest", HandleSuggestion)
 	r.Post("/overview", HandleOverview)
 	r.Post("/generate", HandleGeneration)

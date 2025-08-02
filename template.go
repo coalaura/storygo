@@ -15,6 +15,7 @@ type GenerationRequest struct {
 	Direction string   `json:"direction"`
 	Tags      []string `json:"tags"`
 	Image     *string  `json:"image"`
+	Notes     string   `json:"notes"`
 }
 
 type GenerationTemplate struct {
@@ -23,6 +24,7 @@ type GenerationTemplate struct {
 	Direction string
 	Story     string
 	Image     string
+	Notes     string
 	Empty     bool
 
 	Extra map[string]any
@@ -35,6 +37,7 @@ var (
 	SuggestionTmpl *template.Template
 	OverviewTmpl   *template.Template
 	ImagesTmpl     *template.Template
+	TagsTmpl       *template.Template
 )
 
 func init() {
@@ -59,6 +62,11 @@ func init() {
 	log.MustPanic(err)
 
 	ImagesTmpl = img
+
+	tags, err := template.New("tags").Parse(PromptTags)
+	log.MustPanic(err)
+
+	TagsTmpl = tags
 }
 
 func (g *GenerationRequest) Clean(trim bool) {
@@ -83,10 +91,11 @@ func BuildPrompt(model *Model, tmpl *template.Template, request *GenerationReque
 		Story:     request.Text,
 		Direction: request.Direction,
 		Empty:     request.Text == "",
+		Notes:     request.Notes,
 		Extra:     extra,
 	}
 
-	if request.Image != nil && !model.Vision {
+	if request.Image != nil && (model == nil || !model.Vision) {
 		description, err := ReadImageTextData(*request.Image)
 		if err != nil {
 			return "", err

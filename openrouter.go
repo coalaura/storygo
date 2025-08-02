@@ -11,8 +11,22 @@ func OpenRouterClient() *openrouter.Client {
 	return openrouter.NewClient(OpenRouterToken)
 }
 
+func OpenRouterAdjustRequest(request openrouter.ChatCompletionRequest) openrouter.ChatCompletionRequest {
+	/*
+		request.Provider = &openrouter.ChatProvider{
+			Quantizations: []string{
+				"fp8", "fp16", "bf16", "fp32", "unknown",
+			},
+		}
+	*/
+
+	return request
+}
+
 func OpenRouterRunCompletion(ctx context.Context, request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionResponse, error) {
 	client := OpenRouterClient()
+
+	request = OpenRouterAdjustRequest(request)
 
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
@@ -32,6 +46,8 @@ func OpenRouterRunCompletion(ctx context.Context, request openrouter.ChatComplet
 
 func OpenRouterStartStream(ctx context.Context, request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionStream, error) {
 	client := OpenRouterClient()
+
+	request = OpenRouterAdjustRequest(request)
 
 	stream, err := client.CreateChatCompletionStream(ctx, request)
 	if err != nil {

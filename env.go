@@ -12,6 +12,7 @@ var (
 	ReplicateToken              string
 	VisionModel                 string
 	ImagePromptModel            string
+	TagsModel                   string
 	VisionModelUseCompatibility bool
 
 	Debug bool
@@ -36,6 +37,10 @@ func init() {
 
 	if ImagePromptModel = os.Getenv("IMAGE_PROMPT_MODEL"); ImagePromptModel == "" {
 		ImagePromptModel = "deepseek/deepseek-chat-v3-0324"
+	}
+
+	if TagsModel = os.Getenv("TAGS_MODEL"); TagsModel == "" {
+		TagsModel = "nousresearch/hermes-3-llama-3.1-405b"
 	}
 
 	VisionModelUseCompatibility = os.Getenv("VISION_MODEL_USE_COMPATIBILITY") == "true"

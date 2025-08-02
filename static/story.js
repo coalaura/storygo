@@ -4,6 +4,7 @@
 		$context = document.getElementById("context"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
+		$createTags = document.getElementById("create-tags"),
 		$tag = document.getElementById("tag"),
 		$tags = document.getElementById("tags"),
 		$createImage = document.getElementById("create-image"),
@@ -29,6 +30,7 @@
 		$mdConfirm = document.getElementById("modal-confirm");
 
 	let uploading,
+		tagging,
 		generating,
 		suggesting,
 		image,
@@ -107,6 +109,20 @@
 		}
 	}
 
+	function setTagging(status) {
+		tagging = status;
+
+		if (tagging) {
+			$page.classList.add("tagging");
+
+			$tag.setAttribute("disabled", "true");
+		} else {
+			$page.classList.remove("tagging");
+
+			$tag.removeAttribute("disabled");
+		}
+	}
+
 	function setTextStatus(status) {
 		$textStatus.textContent = status || "";
 	}
@@ -152,6 +168,8 @@
 		tag.classList.add("tag");
 
 		tag.addEventListener("click", () => {
+			if (tagging) return;
+
 			tag.remove();
 
 			store("tags", buildTags());
@@ -370,7 +388,7 @@
 			}
 		} catch (err) {
 			if (err.name !== "AbortError") {
-				alert(`${err}`);
+				alert(err.message);
 			}
 		} finally {
 			callback(false);
@@ -401,10 +419,6 @@
 		}
 
 		const payload = buildPayload(_key, _element, inline);
-
-		if (!payload) {
-			return;
-		}
 
 		_enable(true);
 		_status("sending");
@@ -634,10 +648,10 @@
 		return (await modal(title, `<p>${question}</p>`, ["No", "Yes"])) !== false;
 	}
 
-	async function prompt(title, question) {
+	async function prompt(title, question, value = "") {
 		const data = await modal(
 			title,
-			`<p>${question}</p><input type="text" name="prompt" />`,
+			`<p>${question}</p><input type="text" name="prompt" value="${value}" />`,
 			["Cancel", "Confirm"],
 		);
 
@@ -937,12 +951,6 @@
 	$createImage.addEventListener("click", async () => {
 		if (uploading || generating || suggesting) return;
 
-		const payload = buildPayload(false, false, false);
-
-		if (!payload) {
-			return;
-		}
-
 		const modelDropdown = dropdown("model", ImageModels),
 			styleDropdown = dropdown(
 				"style",
@@ -968,6 +976,8 @@
 		if (!selection) {
 			return;
 		}
+
+		const payload = buildPayload(false, false, false);
 
 		payload.model = selection.model;
 
@@ -1118,8 +1128,68 @@
 		generate("suggest", false);
 	});
 
+	let tagController, tagNotes;
+
+	$createTags.addEventListener("click", async () => {
+		if (tagging) {
+			tagController?.abort();
+
+			return;
+		}
+
+		tagController = new AbortController();
+
+		setTagging(true);
+
+		tagNotes =
+			(await prompt(
+				"Tag Notes",
+				"Any additional notes to keep in mind when creating the tags. (optional)",
+				tagNotes || "",
+			)) || "";
+
+		const payload = buildPayload(false, false, false);
+
+		payload.notes = tagNotes;
+
+		try {
+			const response = await fetch("/tags", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+				signal: tagController.signal,
+			});
+
+			if (!response.ok) {
+				throw new Error(`Tagging failed with status ${response.status}`);
+			}
+
+			const list = await response.json();
+
+			if (!list || !Array.isArray(list)) {
+				throw new Error("Invalid tag list returned");
+			}
+
+			$tags.innerHTML = "";
+
+			for (const tag of list) {
+				appendTag(tag);
+			}
+
+			store("tags", buildTags());
+		} catch (err) {
+			if (err.name !== "AbortError") {
+				alert(err.message);
+			}
+		} finally {
+			setTagging(false);
+		}
+	});
+
 	$tag.addEventListener("keydown", (event) => {
-		if (event.key !== "Enter") {
+		if (tagging || event.key !== "Enter") {
 			return;
 		}
 

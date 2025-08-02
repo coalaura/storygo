@@ -2,11 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
 	"github.com/revrost/go-openrouter"
 )
+
+func RespondWithJSON(w http.ResponseWriter, code int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+
+	json.NewEncoder(w).Encode(data)
+}
 
 func RespondWithText(w http.ResponseWriter, code int, text string) {
 	w.Header().Set("Content-Type", "text/plain")

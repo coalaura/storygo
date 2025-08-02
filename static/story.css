@@ -102,6 +102,10 @@ input[type="file"],
 	align-items: center;
 }
 
+.flex.sm {
+	gap: 4px;
+}
+
 .relative {
 	position: relative;
 }
@@ -285,6 +289,7 @@ input[type="file"],
 
 .model .name.vision::before,
 .tags .tag,
+#create-tags,
 #suggest,
 #generate,
 #mode,
@@ -327,6 +332,11 @@ input[type="file"],
 	background-image: url(icons/blueprint.svg);
 }
 
+.tagging #create-tags {
+	background-image: url(icons/stop.svg);
+}
+
+#create-tags,
 #mode,
 #create-image,
 #import,
@@ -335,6 +345,10 @@ input[type="file"],
 #delete {
 	width: 22px;
 	height: 22px;
+}
+
+#create-tags {
+	background-image: url(icons/tags.svg);
 }
 
 #mode {
