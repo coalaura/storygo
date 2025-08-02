@@ -1,3 +1,36 @@
+function make(tag, classes) {
+	const el = document.createElement(tag);
+
+	el.classList.add(...classes);
+
+	return el;
+}
+
+async function get(url, type = false) {
+	try {
+		const response = await fetch(url);
+
+		if (!response.ok) {
+			throw new Error(response.statusText);
+		}
+
+		switch (type) {
+			case "text":
+				return await response.text();
+			case "json":
+				return await response.json();
+			case "blob":
+				return await response.blob();
+		}
+
+		return true;
+	} catch (err) {
+		console.warn(err);
+	}
+
+	return false;
+}
+
 (() => {
 	const $page = document.getElementById("page"),
 		$model = document.getElementById("model"),
@@ -37,14 +70,6 @@
 		model,
 		mode = "generate";
 
-	function make(tag, classes) {
-		const el = document.createElement(tag);
-
-		el.classList.add(...classes);
-
-		return el;
-	}
-
 	function setUploading(status) {
 		uploading = status;
 
@@ -64,17 +89,6 @@
 		el.dispatchEvent(new Event("change"));
 	}
 
-	function preloadImage(url) {
-		return new Promise((resolve) => {
-			const img = new Image();
-
-			img.src = url;
-
-			img.onload = () => resolve(img);
-			img.onerror = () => resolve(false);
-		});
-	}
-
 	async function setImage(hash) {
 		image = hash;
 
@@ -84,7 +98,7 @@
 			$preview.classList.add("image");
 			$preview.style.backgroundImage = `url("${url}")`;
 
-			if (!(await preloadImage(url))) {
+			if (!(await get(url))) {
 				setImage(null);
 			}
 		} else {
@@ -181,8 +195,8 @@
 	function setModel(set) {
 		const models = [...$model.querySelectorAll(".model")];
 
-		if (!models.find((el) => el.dataset.key === set)) {
-			set = models[0];
+		if (!set || !models.find((el) => el.dataset.key === set)) {
+			set = models[0].dataset.key;
 		}
 
 		model = set;
@@ -336,6 +350,7 @@
 
 		return value;
 	}
+
 	async function stream(url, options, callback) {
 		try {
 			const response = await fetch(url, options);
@@ -495,6 +510,58 @@
 		}
 
 		return false;
+	}
+
+	async function uploadImage(file, allowDetails = false) {
+		setUploading(true);
+
+		if (await imageExists(file)) {
+			setUploading(false);
+
+			return;
+		}
+
+		const form = new FormData();
+
+		form.append("image", file);
+
+		if (allowDetails) {
+			const details = await prompt(
+				"Image Details",
+				"Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)",
+			);
+
+			if (details === false) {
+				setUploading(false);
+
+				return;
+			}
+
+			form.append("details", details);
+		}
+
+		let hash;
+
+		try {
+			const response = await fetch("/image/upload", {
+				method: "POST",
+				body: form,
+			});
+
+			if (!response.ok) {
+				throw new Error(`Upload failed with status ${response.status}`);
+			}
+
+			hash = await response.text();
+		} catch (err) {
+			alert(err.message);
+
+			return;
+		} finally {
+			setUploading(false);
+		}
+
+		setImage(hash);
 	}
 
 	function alert(message) {
@@ -720,22 +787,73 @@
 		}
 	});
 
-	$export.addEventListener("click", () => {
+	$export.addEventListener("click", async () => {
 		if (generating || suggesting) return;
 
-		download(
-			"save-file.json",
-			"application/json",
-			JSON.stringify({
-				mdl: model,
-				ctx: clean($context.value),
-				txt: clean($text.value),
-				dir: clean($direction.value),
-				tgs: buildTags(),
-				img: image,
-				mde: mode || "generate",
+		const zip = new JSZip();
+
+		const payload = buildPayload(false, false, false),
+			metadata = {
+				mode: mode,
+				model: model,
+				tags: buildTags(),
+			};
+
+		// store metadata
+		zip.file(
+			"metadata.json",
+			new Blob([JSON.stringify(metadata)], {
+				type: "application/json",
 			}),
 		);
+
+		// store context
+		if (payload.context) {
+			zip.file(
+				"context.txt",
+				new Blob([payload.context], {
+					type: "text/plain",
+				}),
+			);
+		}
+
+		// store text
+		if (payload.text) {
+			zip.file(
+				"text.txt",
+				new Blob([payload.text], {
+					type: "text/plain",
+				}),
+			);
+		}
+
+		// store direction
+		if (payload.direction) {
+			zip.file(
+				"direction.txt",
+				new Blob([payload.direction], {
+					type: "text/plain",
+				}),
+			);
+		}
+
+		// store image
+		if (image) {
+			const img = await get(`/i/${image}`, "blob");
+
+			if (img) {
+				zip.file("image.webp", img);
+			} else {
+				alert("Failed to load image.");
+			}
+		}
+
+		// build & download zip
+		const blob = await zip.generateAsync({
+			type: "blob",
+		});
+
+		download("story.zip", "application/zip", blob);
 	});
 
 	$import.addEventListener("click", () => {
@@ -751,57 +869,71 @@
 
 		const reader = new FileReader();
 
-		reader.onload = (e) => {
+		reader.onload = async (event) => {
 			try {
-				const json = JSON.parse(e.target.result);
+				const zip = await JSZip.loadAsync(event.target.result);
 
-				if (!json?.ctx && !json?.txt && !json?.dir) {
-					throw new Error("empty safe file");
-				}
+				// read metadata
+				let file = zip.file("metadata.json");
 
-				if (json.mdl && typeof json.mdl === "string") {
-					setModel(json.mdl);
+				const metadata = file ? JSON.parse(await file.async("string")) : null;
+
+				if (metadata?.model && typeof metadata.model === "string") {
+					setModel(metadata.model);
 				} else {
 					setModel(null);
 				}
 
-				if (json.ctx && typeof json.ctx === "string") {
-					setValue($context, clean(json.ctx));
+				$tags.innerHTML = "";
+
+				if (metadata?.tags && Array.isArray(metadata.tags)) {
+					for (const tag of metadata.tags) {
+						appendTag(tag);
+					}
+				}
+
+				if (metadata?.mode && typeof metadata.mode === "string") {
+					setMode(metadata.mode);
+				} else {
+					setMode("generate");
+				}
+
+				// read context
+				file = zip.file("context.txt");
+
+				if (file) {
+					setValue($context, clean(await file.async("string")));
 				} else {
 					setValue($context, "");
 				}
 
-				if (json.txt && typeof json.txt === "string") {
-					setValue($text, clean(json.txt));
+				// read text
+				file = zip.file("text.txt");
+
+				if (file) {
+					setValue($text, clean(await file.async("string")));
+
 					$text.scrollTop = $text.scrollHeight;
 				} else {
 					setValue($text, "");
 				}
 
-				if (json.dir && typeof json.dir === "string") {
-					setValue($direction, clean(json.dir));
+				// read direction
+				file = zip.file("direction.txt");
+
+				if (file) {
+					setValue($direction, clean(await file.async("string")));
 				} else {
 					setValue($direction, "");
 				}
 
-				if (json.tgs && Array.isArray(json.tgs)) {
-					for (const tag of json.tgs) {
-						appendTag(tag);
-					}
-				} else {
-					$tags.innerHTML = "";
-				}
+				// read image
+				file = zip.file("image.webp");
 
-				if (json.img && typeof json.img === "string") {
-					setImage(json.img);
+				if (file) {
+					uploadImage(await file.async("blob"));
 				} else {
 					setImage(null);
-				}
-
-				if (json.mde && typeof json.mde === "string") {
-					setMode(json.mde);
-				} else {
-					setMode("generate");
 				}
 
 				storeAll();
@@ -812,7 +944,7 @@
 			}
 		};
 
-		reader.readAsText(file);
+		reader.readAsArrayBuffer(file);
 	});
 
 	$delete.addEventListener("click", async () => {
@@ -954,59 +1086,14 @@
 		$image.click();
 	});
 
-	$image.addEventListener("change", async (event) => {
+	$image.addEventListener("change", (event) => {
 		const file = event.target.files[0];
 
 		if (!file) {
 			return;
 		}
 
-		setUploading(true);
-
-		if (await imageExists(file)) {
-			setUploading(false);
-
-			return;
-		}
-
-		const details = await prompt(
-			"Image Details",
-			"Important details in the image, that the image-to-text model should pay close attention to or might miss. (optional)",
-		);
-
-		if (details === false) {
-			setUploading(false);
-
-			return;
-		}
-
-		const form = new FormData();
-
-		form.append("image", file);
-		form.append("details", details);
-
-		let hash;
-
-		try {
-			const response = await fetch("/image/upload", {
-				method: "POST",
-				body: form,
-			});
-
-			if (!response.ok) {
-				throw new Error(`Upload failed with status ${response.status}`);
-			}
-
-			hash = await response.text();
-		} catch (err) {
-			alert(`${err}`);
-
-			return;
-		} finally {
-			setUploading(false);
-		}
-
-		setImage(hash);
+		uploadImage(file);
 	});
 
 	$suggest.addEventListener("click", async () => {
