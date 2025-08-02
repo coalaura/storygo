@@ -117,7 +117,7 @@ input[type="file"],
 	font-size: 16px;
 	height: 28px;
 	box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.1);
-	width: 240px;
+	width: 260px;
 	position: relative;
 	z-index: 20;
 }

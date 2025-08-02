@@ -20,19 +20,27 @@ type Model struct {
 
 var (
 	Models = []*Model{
-		// Excellent unmoderated model for creative writing, a great default.
+		// Excellent unmoderated default for creative prose; great balance of quality and speed.
 		NewModel("deepseek/deepseek-chat-v3-0324", "DeepSeek V3 0324", false, false, []string{"unmoderated", "default"}),
-		// The best choice for high-quality, literary prose and safe content.
-		NewModel("anthropic/claude-4-opus", "Claude 4 Opus", false, true, []string{"literary", "moderated"}),
-		// Google's flagship with vision, great for creative but logical stories.
+		// Anthropic’s cost-effective flagship; strong literary style, long context, vision support.
+		NewModel("anthropic/claude-sonnet-4", "Claude 4 Sonnet", true, true, []string{"literary", "moderated"}),
+		// Google’s multimodal reasoning work-horse; structured output and tool use.
 		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
-		// xAI's flagship with vision; powerful, less restricted, and creative.
+		// xAI’s vision model; witty personality, fewer policy limits, excellent creativity.
 		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
-		// OpenAI's versatile model with vision, excels at conversational storytelling.
+		// OpenAI’s conversational all-rounder with fast vision and solid reasoning.
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
-		// A massive open model, excels at character-driven stories and dialogue.
-		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B Instruct", false, false, []string{"unmoderated", "character-driven"}),
-		// A top-tier open model with exceptional literary writing performance.
+		// Mid-tier Claude; cheaper than 4-series, still strong at code and reasoning.
+		NewModel("anthropic/claude-sonnet-3.7", "Claude 3.7 Sonnet", true, true, []string{"creative", "structured"}),
+		// Meta’s new open-weight MoE; 1 M context, vision, good general writing.
+		NewModel("meta-llama/llama-4-maverick", "Llama-4 Maverick", true, true, []string{"unmoderated", "versatile"}),
+		// Alibaba’s 30 B MoE; strong instruction following and long context, good coder.
+		NewModel("qwen/Qwen3-30B-A3B-Instruct-2507", "Qwen3 30B Instruct", false, true, []string{"creative", "structured"}),
+		// Zhipu’s GLM-4.5-Air; fast, tool-friendly multimodal model with long context.
+		NewModel("z-ai/glm-4.5", "GLM-4.5", false, true, []string{"fast", "versatile"}),
+		// Massive open model; shines in dialogue and role-play scenarios.
+		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B", false, false, []string{"unmoderated", "character-driven"}),
+		// Open-weight Chinese model; excels at descriptive, imaginative prose.
 		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
 	}
 
