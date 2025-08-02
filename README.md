@@ -8,6 +8,7 @@ StoryGo is a creative writing assistant powered by AI. It's designed to help wri
 - **Rapid Development:** Quickly create a detailed overview of your story, including a premise and character descriptions.
 - **Creative Collaboration:** Use the AI as a brainstorming partner to explore different narrative paths and possibilities.
 - **Image-to-Story:** Use images as a source of inspiration to generate unique story concepts.
+- **Story-to-Image:** Generate images based on your story to bring your narrative to life.
 - **Simple and Focused:** A minimal interface that lets you focus on your writing.
 
 ## Features
@@ -18,6 +19,7 @@ StoryGo is a creative writing assistant powered by AI. It's designed to help wri
 - **Context and Direction:** Guide the AI with a "World Bible" (context) and a "Next Step" (direction) to maintain consistency and control the narrative.
 - **Model Switching:** Choose from a variety of AI models to find the perfect one for your writing style.
 - **Vision-Based Inspiration:** Upload an image and let the AI generate a story based on it. Non-vision models are supported by converting the image to a detailed text description.
+- **Image Generation:** Generate images based on the current story. Choose from a variety of models and styles to create the perfect image.
 - **Export to PDF:** Save your stories as PDF files for easy sharing and printing.
 - **Keybinds for Efficiency:**
   - `Ctrl+Enter`: Generate/Suggest.
@@ -53,9 +55,10 @@ go mod tidy
 
 3. **Set up your environment variables:**
   - Rename the `.example.env` file to `.env`.
-  - Open the `.env` file and add your OpenRouter API key:
+  - Open the `.env` file and add your OpenRouter and Replicate API keys:
 ```
 OPENROUTER_TOKEN="your-openrouter-api-key"
+REPLICATE_TOKEN="your-replicate-api-key"
 ```
 
 4. **Run the application:**
