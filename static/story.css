@@ -366,7 +366,9 @@ input[type="file"],
 	display: none;
 }
 
+.alert-background,
 .modal-background,
+.alert,
 #modal {
 	position: absolute;
 	top: 0;
@@ -379,14 +381,21 @@ input[type="file"],
 	z-index: 20;
 }
 
+.alert {
+	z-index: 40;
+}
+
+#alert:not(.open),
 #modal:not(.open) {
 	display: none;
 }
 
+.alert-background,
 .modal-background {
 	backdrop-filter: blur(12px);
 }
 
+.alert-content,
 .modal-content {
 	display: flex;
 	flex-direction: column;
@@ -405,11 +414,16 @@ input[type="file"],
 	max-height: 100%;
 }
 
+.alert-content {
+	width: 400px;
+}
+
 .modal-title {
 	font-size: 22px;
 	font-weight: 600;
 }
 
+.alert-body,
 .modal-body {
 	display: flex;
 	flex-direction: column;
@@ -425,18 +439,21 @@ input[type="file"],
 	background: #363a4f;
 }
 
+.alert-buttons,
 .modal-buttons {
 	display: flex;
 	gap: 8px;
 	justify-content: end;
 }
 
+.alert-buttons button,
 .modal-buttons button {
 	color: #181926;
 	padding: 4px 8px;
 	transition: 150ms;
 }
 
+.alert-buttons button:hover,
 .modal-buttons button:hover {
 	filter: brightness(0.85) contrast(1.1);
 }
@@ -447,6 +464,10 @@ input[type="file"],
 
 #modal-cancel {
 	background: #ed8796;
+}
+
+.alert-confirm {
+	background: #b7bdf8;
 }
 
 @keyframes rotating {

@@ -35,6 +35,14 @@
 		model,
 		mode = "generate";
 
+	function make(tag, classes) {
+		const el = document.createElement(tag);
+
+		el.classList.add(...classes);
+
+		return el;
+	}
+
 	function setUploading(status) {
 		uploading = status;
 
@@ -473,6 +481,36 @@
 		}
 
 		return false;
+	}
+
+	function alert(message) {
+		const wrapper = make("div", ["alert"]),
+			back = make("div", ["alert-background"]),
+			cont = make("div", ["alert-content"]),
+			body = make("div", ["alert-body"]),
+			btns = make("div", ["alert-buttons"]),
+			conf = make("button", ["alert-confirm"]);
+
+		body.textContent = message;
+		conf.textContent = "Okay";
+
+		wrapper.appendChild(back);
+		wrapper.appendChild(cont);
+
+		cont.appendChild(body);
+		cont.appendChild(btns);
+
+		btns.appendChild(conf);
+
+		back.addEventListener("click", () => {
+			wrapper.remove();
+		});
+
+		conf.addEventListener("click", () => {
+			wrapper.remove();
+		});
+
+		document.body.appendChild(wrapper);
 	}
 
 	let mdCallback;
