@@ -998,8 +998,6 @@
 				signal: abort.signal,
 			},
 			(chunk) => {
-				console.log("chunk", chunk);
-
 				if (!chunk) {
 					if (!resultUrl) {
 						closeModal();
