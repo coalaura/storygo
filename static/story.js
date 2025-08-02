@@ -289,20 +289,6 @@ async function get(url, type = false) {
 		URL.revokeObjectURL(url);
 	}
 
-	async function downloadImage(name, url, type) {
-		try {
-			const response = await fetch(url);
-
-			if (!response.ok) {
-				throw new Error(response.statusText);
-			}
-
-			download(name, type, await response.blob());
-		} catch (err) {
-			console.error(err);
-		}
-	}
-
 	function clean(text) {
 		text = text.trim().replace(/\r\n/g, "\n");
 
@@ -783,7 +769,15 @@ async function get(url, type = false) {
 		download("story.txt", "text/plain", text);
 
 		if (image) {
-			downloadImage("story.webp", `/i/${image}`, "image/webp");
+			const img = await get(`/i/${image}`, "blob");
+
+			if (!img) {
+				alert("Failed to download image.");
+
+				return;
+			}
+
+			download("story.webp", "image/webp", img);
 		}
 	});
 
