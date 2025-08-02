@@ -293,6 +293,7 @@ input[type="file"],
 
 #direction {
 	height: 140px;
+	padding-right: 36px;
 }
 
 #text-status,
@@ -334,7 +335,7 @@ input[type="file"],
 }
 
 #suggest {
-	right: 36px;
+	top: 36px;
 	background-image: url(icons/thought.svg);
 }
 
