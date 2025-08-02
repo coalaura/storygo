@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/revrost/go-openrouter"
 )
@@ -12,11 +11,8 @@ func OpenRouterClient() *openrouter.Client {
 	return openrouter.NewClient(OpenRouterToken)
 }
 
-func OpenRouterRunCompletion(request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionResponse, error) {
+func OpenRouterRunCompletion(ctx context.Context, request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionResponse, error) {
 	client := OpenRouterClient()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-	defer cancel()
 
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {

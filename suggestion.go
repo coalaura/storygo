@@ -69,7 +69,7 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("suggestion: finished completion")
 
-	RespondWithStream(w, stream, "")
+	RespondWithStream(w, ctx, stream, "")
 }
 
 func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openrouter.ChatCompletionRequest, error) {

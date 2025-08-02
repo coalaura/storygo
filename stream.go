@@ -1,19 +1,70 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/revrost/go-openrouter"
 )
 
 type Chunk struct {
-	State string `json:"state,omitempty"`
-	Error string `json:"error,omitempty"`
-	Text  string `json:"text,omitempty"`
+	State    string  `json:"state,omitempty"`
+	Error    string  `json:"error,omitempty"`
+	Text     string  `json:"text,omitempty"`
+	Progress float64 `json:"progress,omitempty"`
+}
+
+type Stream struct {
+	closed uint32
+	wg     sync.WaitGroup
+	rch    chan Chunk
+
+	mx    sync.Mutex
+	state string
+}
+
+func (s *Stream) Send(chunk Chunk) bool {
+	if atomic.LoadUint32(&s.closed) == 1 {
+		log.Debug("already closed")
+		return false
+	}
+
+	select {
+	case s.rch <- chunk:
+		return true
+	default:
+		log.Debug("failed send")
+		return false
+	}
+}
+
+func (s *Stream) SetState(state string) {
+	s.mx.Lock()
+	defer s.mx.Unlock()
+
+	if s.state == state {
+		return
+	}
+
+	s.state = state
+
+	s.Send(StateChunk(state))
+}
+
+func (s *Stream) Close() {
+	if !atomic.CompareAndSwapUint32(&s.closed, 0, 1) {
+		return
+	}
+
+	close(s.rch)
+
+	s.wg.Wait()
 }
 
 func ErrChunk(err error) Chunk {
@@ -28,19 +79,13 @@ func TextChunk(text string) Chunk {
 	return Chunk{Text: text}
 }
 
-func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rch chan Chunk) {
-	defer close(rch)
-
+func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rStream *Stream) {
 	var dbg collector
 	defer dbg.Print("stream: %q")
 
-	var (
-		reasoning bool
-		receiving bool
-		finished  bool
-	)
+	var finished bool
 
-	rch <- StateChunk("waiting")
+	rStream.SetState("waiting")
 
 	for {
 		response, err := stream.Recv()
@@ -49,7 +94,7 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rch cha
 				return
 			}
 
-			rch <- ErrChunk(err)
+			rStream.Send(ErrChunk(err))
 
 			return
 		}
@@ -61,7 +106,7 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rch cha
 		choice := response.Choices[0]
 
 		if choice.FinishReason == openrouter.FinishReasonContentFilter {
-			rch <- ErrChunk(errors.New("[stopped due to content_filter]"))
+			rStream.Send(ErrChunk(errors.New("[stopped due to content_filter]")))
 
 			return
 		}
@@ -79,21 +124,15 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rch cha
 				}
 			}
 
-			if !receiving {
-				receiving = true
-
-				rch <- StateChunk("receiving")
-			}
+			rStream.SetState("receiving")
 
 			dbg.Write(content)
 
-			rch <- TextChunk(content)
-		} else if choice.Delta.Reasoning != nil {
-			if !reasoning {
-				reasoning = true
-
-				rch <- StateChunk("reasoning")
+			if !rStream.Send(TextChunk(content)) {
+				return
 			}
+		} else if choice.Delta.Reasoning != nil {
+			rStream.SetState("reasoning")
 		}
 
 		if finished {
@@ -102,7 +141,7 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rch cha
 	}
 }
 
-func CreateResponseStream(w http.ResponseWriter) (chan Chunk, error) {
+func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, error) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		return nil, errors.New("failed to create flusher")
@@ -113,23 +152,39 @@ func CreateResponseStream(w http.ResponseWriter) (chan Chunk, error) {
 	w.Header().Set("Connection", "keep-alive")
 
 	var (
-		ch      = make(chan Chunk)
 		encoder = json.NewEncoder(w)
+		stream  = &Stream{
+			rch: make(chan Chunk, 10),
+		}
 	)
 
+	stream.wg.Add(1)
+
 	go func() {
+		defer stream.wg.Done()
+
 		for {
-			chunk, ok := <-ch
-			if !ok {
+			select {
+			case <-ctx.Done():
 				return
+			case chunk, ok := <-stream.rch:
+				if !ok {
+					return
+				}
+
+				if err := encoder.Encode(chunk); err != nil {
+					log.WarningE(err)
+					return
+				}
+
+				if _, err := w.Write([]byte("\n\n")); err == nil {
+					flusher.Flush()
+				} else {
+					log.WarningE(err)
+				}
 			}
-
-			encoder.Encode(chunk)
-			w.Write([]byte("\n\n"))
-
-			flusher.Flush()
 		}
 	}()
 
-	return ch, nil
+	return stream, nil
 }

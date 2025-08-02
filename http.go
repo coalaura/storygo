@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 
@@ -21,15 +22,16 @@ func RespondWithImage(w http.ResponseWriter, file io.Reader) {
 	io.Copy(w, file)
 }
 
-func RespondWithStream(w http.ResponseWriter, stream *openrouter.ChatCompletionStream, stop string) {
-	response, err := CreateResponseStream(w)
+func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openrouter.ChatCompletionStream, stop string) {
+	rStream, err := CreateResponseStream(w, ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
+		log.Warning("failed to create response stream")
 		log.WarningE(err)
 
 		return
 	}
 
-	ReceiveStream(stream, stop, response)
+	ReceiveStream(stream, stop, rStream)
 }

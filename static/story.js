@@ -6,6 +6,7 @@
 		$image = document.getElementById("image"),
 		$tag = document.getElementById("tag"),
 		$tags = document.getElementById("tags"),
+		$createImage = document.getElementById("create-image"),
 		$import = document.getElementById("import"),
 		$importFile = document.getElementById("import-file"),
 		$export = document.getElementById("export"),
@@ -44,6 +45,13 @@
 			$preview.classList.remove("uploading");
 			$generate.removeAttribute("disabled");
 		}
+	}
+
+	function setValue(el, value) {
+		el.value = value;
+
+		el.dispatchEvent(new Event("input"));
+		el.dispatchEvent(new Event("change"));
 	}
 
 	function preloadImage(url) {
@@ -200,30 +208,38 @@
 			payload.context = buildNewContext(payload);
 		}
 
-		if (payload[key]) {
+		if (key && payload[key]) {
 			payload[key] += inline ? " " : "\n\n";
 		}
 
-		$context.value = payload.context;
-		$text.value = payload.text;
-		$direction.value = payload.direction;
+		setValue($context, payload.context);
+		setValue($text, payload.text);
+		setValue($direction, payload.direction);
 
-		element.scrollTop = element.scrollHeight;
+		if (element) {
+			element.scrollTop = element.scrollHeight;
+		}
 
 		return payload;
 	}
 
 	function download(name, type, data) {
-		const blob = new Blob([data], {
-			type: type,
-		});
+		let blob;
 
-		const url = URL.createObjectURL(blob),
-			a = document.createElement("a");
+		if (data instanceof Blob) {
+			blob = data;
+		} else {
+			blob = new Blob([data], {
+				type: type,
+			});
+		}
 
+		const a = document.createElement("a"),
+			url = URL.createObjectURL(blob);
+
+		a.setAttribute("download", name);
 		a.style.display = "none";
 		a.href = url;
-		a.download = name;
 
 		document.body.appendChild(a);
 
@@ -231,6 +247,20 @@
 
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
+	}
+
+	async function downloadImage(name, url, type) {
+		try {
+			const response = await fetch(url);
+
+			if (!response.ok) {
+				throw new Error(response.statusText);
+			}
+
+			download(name, type, await response.blob());
+		} catch (err) {
+			console.error(err);
+		}
 	}
 
 	function clean(text) {
@@ -345,7 +375,7 @@
 		if (uploading || generating || suggesting) return;
 
 		if (endpoint === "overview") {
-			$text.value = "";
+			setValue($text, "");
 		}
 
 		let _enable, _status, _element, _key;
@@ -393,7 +423,7 @@
 
 					payload[_key] = clean(dai.clean(payload[_key]));
 
-					_element.value = payload[_key];
+					setValue(_element, payload[_key]);
 
 					store(_key, payload[_key]);
 
@@ -406,13 +436,12 @@
 					return;
 				}
 
-				payload[_key] += chunk.text;
+				payload[_key] += chunk.text || chunk.error;
 
-				_element.value = payload[_key];
+				setValue(_element, payload[_key]);
 				_element.scrollTop = _element.scrollHeight;
 
 				store(_key, payload[_key]);
-
 			},
 		);
 	}
@@ -448,18 +477,19 @@
 
 	let mdCallback;
 
-	$mdBackground.addEventListener("click", () => {
+	function closeModal() {
 		$modal.classList.remove("open");
 
 		mdCallback?.(false);
 		mdCallback = null;
+	}
+
+	$mdBackground.addEventListener("click", () => {
+		closeModal();
 	});
 
 	$mdCancel.addEventListener("click", () => {
-		$modal.classList.remove("open");
-
-		mdCallback?.(false);
-		mdCallback = null;
+		closeModal();
 	});
 
 	$mdConfirm.addEventListener("click", () => {
@@ -476,18 +506,50 @@
 			data[name] = value;
 		});
 
+		$mdBody.querySelectorAll(".dropdown").forEach((input) => {
+			const name = input.dataset.name,
+				selected = input.querySelector(".model.selected");
+
+			if (!name) {
+				return;
+			}
+
+			data[name] = selected?.dataset?.key;
+		});
+
 		mdCallback(data);
 		mdCallback = null;
 	});
 
+	function dropdown(name, options) {
+		const optionsHtml = options
+			.map((option) => {
+				let tags = "";
+
+				if (option.tags) {
+					const list = option.tags.map(
+						(tag) =>
+							`<div class="tag" title="${tag}" style="background-image:url('/icons/tags/${tag}.svg')"></div>`,
+					);
+
+					tags = `<div class="tags">${list.join("")}</div>`;
+				}
+
+				return `<div class="model" data-key="${option.key}"><div class="name ${option.vision ? "vision" : ""}">${option.name}</div>${tags}</div>`;
+			})
+			.join("");
+
+		return `<div data-name="${name}" class="dropdown"><div class="options">${optionsHtml}</div></div>`;
+	}
+
 	function modal(title, html, buttons) {
-		mdCallback?.(false);
+		closeModal();
+
+		$mdTitle.textContent = title;
+		$mdBody.innerHTML = html;
 
 		return new Promise((resolve) => {
 			mdCallback = resolve;
-
-			$mdTitle.textContent = title;
-			$mdBody.innerHTML = html;
 
 			$mdBody.querySelectorAll(".dropdown").forEach((dd) => {
 				const models = [...dd.querySelectorAll(".model")];
@@ -510,12 +572,21 @@
 				});
 			});
 
-			if (!buttons?.length) {
-				buttons = ["Cancel", "Confirm"];
+			if (buttons?.length && buttons?.length >= 1) {
+				$mdCancel.classList.remove("hidden");
+
+				$mdCancel.textContent = buttons[0];
+			} else {
+				$mdCancel.classList.add("hidden");
 			}
 
-			$mdCancel.textContent = buttons[0];
-			$mdConfirm.textContent = buttons[1];
+			if (buttons?.length === 2) {
+				$mdConfirm.classList.remove("hidden");
+
+				$mdConfirm.textContent = buttons[1];
+			} else {
+				$mdConfirm.classList.add("hidden");
+			}
 
 			$modal.classList.add("open");
 		});
@@ -570,7 +641,7 @@
 			return;
 		}
 
-		$text.value = "";
+		setValue($text, "");
 
 		if (mode === "overview") {
 			setMode("generate");
@@ -752,22 +823,22 @@
 				}
 
 				if (json.ctx && typeof json.ctx === "string") {
-					$context.value = clean(json.ctx);
+					setValue($context, clean(json.ctx));
 				} else {
-					$context.value = "";
+					setValue($context, "");
 				}
 
 				if (json.txt && typeof json.txt === "string") {
-					$text.value = clean(json.txt);
+					setValue($text, clean(json.txt));
 					$text.scrollTop = $text.scrollHeight;
 				} else {
-					$text.value = "";
+					setValue($text, "");
 				}
 
 				if (json.dir && typeof json.dir === "string") {
-					$direction.value = clean(json.dir);
+					setValue($direction, clean(json.dir));
 				} else {
-					$direction.value = "";
+					setValue($direction, "");
 				}
 
 				if (json.tgs && Array.isArray(json.tgs)) {
@@ -813,9 +884,9 @@
 			return;
 		}
 
-		$context.value = "";
-		$text.value = "";
-		$direction.value = "";
+		setValue($context, "");
+		setValue($text, "");
+		setValue($direction, "");
 
 		$tags.innerHTML = "";
 
@@ -825,10 +896,123 @@
 		storeAll();
 	});
 
+	$createImage.addEventListener("click", async () => {
+		if (uploading || generating || suggesting) return;
+
+		const payload = buildPayload(false, false, false);
+
+		if (!payload) {
+			return;
+		}
+
+		const modelDropdown = dropdown("model", ImageModels),
+			styleDropdown = dropdown(
+				"style",
+				ImageStyles.map((style, index) => ({
+					key: index,
+					name: style,
+				})),
+			);
+
+		const selection = await modal(
+			"Image Generation",
+			`<div class="form-group">
+				<label>Image Model</label>
+				${modelDropdown}
+			</div>
+			<div class="form-group">
+				<label>Image Model</label>
+				${styleDropdown}
+			</div>`,
+			["Cancel", "Generate"],
+		);
+
+		if (!selection) {
+			return;
+		}
+
+		payload.model = selection.model;
+
+		const abort = new AbortController();
+
+		let resultName, resultUrl;
+
+		modal("Image Generation", `<p>Waiting...</p>`, ["Abort"]).then(
+			async (shouldSave) => {
+				abort.abort();
+
+				if (shouldSave && resultUrl) {
+					downloadImage(resultName, resultUrl, "image/webp");
+				}
+			},
+		);
+
+		const $mInfo = $mdBody.querySelector("p");
+
+		stream(
+			`/image/create/${selection.style || 0}`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(payload),
+				signal: abort.signal,
+			},
+			(chunk) => {
+				console.log("chunk", chunk);
+
+				if (!chunk) {
+					if (!resultUrl) {
+						closeModal();
+					}
+
+					return;
+				}
+
+				if (chunk.error) {
+					alert(chunk.error);
+
+					return;
+				} else if (chunk.state) {
+					switch (chunk.state) {
+						case "prompt":
+							$mInfo.textContent =
+								"Creating image prompt, this may take a moment...";
+							break;
+						case "image":
+							$mInfo.textContent =
+								"Generating image, this may take a moment...";
+							break;
+						case "save":
+							$mInfo.textContent = "Saving generated image...";
+							break;
+					}
+
+					return;
+				}
+
+				resultName = `${chunk.text}.webp`;
+				resultUrl = `/g/${chunk.text}`;
+
+				$mdBody.innerHTML = `<img src="${resultUrl}" />`;
+
+				$mdCancel.textContent = "Close";
+				$mdConfirm.textContent = "Download";
+
+				$mdConfirm.classList.remove("hidden");
+			},
+		);
+	});
+
 	$preview.addEventListener("click", () => {
 		if (uploading || generating || suggesting) return;
 
-		setImage(null);
+		if (image) {
+			setImage(null);
+
+			return;
+		}
 
 		$image.click();
 	});
@@ -911,7 +1095,7 @@
 
 		appendTag(content);
 
-		$tag.value = "";
+		setValue($tag, "");
 
 		store("tags", buildTags());
 	});
@@ -930,6 +1114,14 @@
 
 	$text.addEventListener("change", () => {
 		store("text", clean($text.value));
+	});
+
+	$text.addEventListener("input", () => {
+		if (clean($text.value)) {
+			$page.classList.add("not-empty");
+		} else {
+			$page.classList.remove("not-empty");
+		}
 	});
 
 	$text.addEventListener("keydown", (event) => {
@@ -968,9 +1160,9 @@
 		}
 	});
 
-	$context.value = load("context", "");
-	$text.value = load("text", "");
-	$direction.value = load("direction", "");
+	setValue($context, load("context", ""));
+	setValue($text, load("text", ""));
+	setValue($direction, load("direction", ""));
 
 	$text.scrollTop = $text.scrollHeight;
 

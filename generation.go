@@ -69,7 +69,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("generation: finished generation")
 
-	RespondWithStream(w, stream, "\n")
+	RespondWithStream(w, ctx, stream, "\n")
 }
 
 func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openrouter.ChatCompletionRequest, error) {

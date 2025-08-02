@@ -1,12 +1,22 @@
 package main
 
 import (
-	_ "embed"
+	"context"
 	"encoding/json"
+	"fmt"
+	"image"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
+	_ "embed"
+	_ "image/jpeg"
+	_ "image/png"
+
+	"github.com/corona10/goimagehash"
 	"github.com/go-chi/chi/v5"
+	"github.com/replicate/replicate-go"
 	"github.com/revrost/go-openrouter"
 )
 
@@ -15,11 +25,17 @@ var (
 	PromptImages string
 )
 
-// TODO: call replicate and generate image
-
 func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	log.Info("image: new request")
 	defer log.Info("image: finished request")
+
+	if ReplicateToken == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+
+		log.Warning("image: missing replicate token")
+
+		return
+	}
 
 	index, err := strconv.Atoi(chi.URLParam(r, "style"))
 	if err != nil {
@@ -65,17 +81,47 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt, err := CreateImagePrompt(model, &image, style)
+	ctx := r.Context()
+
+	rStream, err := CreateResponseStream(w, ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("image: failed to create prompt")
+		log.Warning("image: failed to create response stream")
 		log.WarningE(err)
 
 		return
 	}
 
-	RespondWithText(w, 200, prompt)
+	defer rStream.Close()
+
+	rStream.SetState("prompt")
+
+	prompt, err := CreateImagePrompt(ctx, model, &image, style)
+	if err != nil {
+		log.Warning("image: failed to create prompt")
+		log.WarningE(err)
+
+		rStream.Send(ErrChunk(err))
+
+		return
+	}
+
+	rStream.SetState("image")
+
+	resultUrl, err := CreateImage(ctx, model, prompt)
+	if err != nil {
+		log.Warning("image: failed to create image")
+		log.WarningE(err)
+
+		rStream.Send(ErrChunk(err))
+
+		return
+	}
+
+	rStream.SetState("save")
+
+	rStream.Send(TextChunk(resultUrl))
 }
 
 func CreateImagePromptRequest(model *Model, image *GenerationRequest, style string) (openrouter.ChatCompletionRequest, error) {
@@ -100,7 +146,7 @@ func CreateImagePromptRequest(model *Model, image *GenerationRequest, style stri
 	return request, nil
 }
 
-func CreateImagePrompt(model *Model, image *GenerationRequest, style string) (string, error) {
+func CreateImagePrompt(ctx context.Context, model *Model, image *GenerationRequest, style string) (string, error) {
 	request, err := CreateImagePromptRequest(model, image, style)
 	if err != nil {
 		return "", err
@@ -110,7 +156,7 @@ func CreateImagePrompt(model *Model, image *GenerationRequest, style string) (st
 
 	debugf("image: running completion")
 
-	completion, err := OpenRouterRunCompletion(request)
+	completion, err := OpenRouterRunCompletion(ctx, request)
 	if err != nil {
 		return "", err
 	}
@@ -118,4 +164,52 @@ func CreateImagePrompt(model *Model, image *GenerationRequest, style string) (st
 	debugd("image-prompt-completion", &completion)
 
 	return completion.Choices[0].Message.Content.Text, nil
+}
+
+func CreateImage(ctx context.Context, model *Model, prompt string) (string, error) {
+	input := replicate.PredictionInput{
+		"prompt": prompt,
+	}
+
+	prediction, err := ReplicateRunPrediction(ctx, model.Slug, input)
+	if err != nil {
+		return "", err
+	}
+
+	url, err := ResolveReplicateURL(*prediction)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	img, _, err := image.Decode(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	perception, err := goimagehash.PerceptionHash(img)
+	if err != nil {
+		return "", err
+	}
+
+	hash := fmt.Sprintf("%x", perception.GetHash())
+
+	path := filepath.Join("generated", hash+".webp")
+
+	if _, err := os.Stat("generated"); os.IsNotExist(err) {
+		os.Mkdir("generated", 0755)
+	}
+
+	err = EncodeWebP(img, path)
+	if err != nil {
+		return "", err
+	}
+
+	return hash, nil
 }

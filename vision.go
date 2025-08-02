@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"image"
@@ -46,7 +47,7 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 
 	debugf("upload: describing image %q", hash)
 
-	err = DescribeImage(hash, input, details)
+	err = DescribeImage(r.Context(), hash, input, details)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
@@ -90,30 +91,32 @@ func HandleImageHash(w http.ResponseWriter, r *http.Request) {
 	RespondWithText(w, 200, hash)
 }
 
-func HandleImageServe(w http.ResponseWriter, r *http.Request) {
-	hash := chi.URLParam(r, "hash")
+func HandleImageServe(directory string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hash := chi.URLParam(r, "hash")
 
-	if !IsHashValid(hash) {
-		w.WriteHeader(http.StatusBadRequest)
+		if !IsHashValid(hash) {
+			w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("image: invalid hash")
+			log.Warning("image: invalid hash")
 
-		return
+			return
+		}
+
+		file, err := os.OpenFile(filepath.Join(directory, hash+".webp"), os.O_RDONLY, 0)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+
+			log.Warning("image: failed to open image")
+			log.WarningE(err)
+
+			return
+		}
+
+		defer file.Close()
+
+		RespondWithImage(w, file)
 	}
-
-	file, err := os.OpenFile(ImageWebpPath(hash), os.O_RDONLY, 0)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-
-		log.Warning("image: failed to open image")
-		log.WarningE(err)
-
-		return
-	}
-
-	defer file.Close()
-
-	RespondWithImage(w, file)
 }
 
 func ReceiveImage(r *http.Request) (image.Image, string, error) {
@@ -150,7 +153,7 @@ func ReceiveImage(r *http.Request) (image.Image, string, error) {
 	return input, hash, nil
 }
 
-func DescribeImage(hash string, img image.Image, details string) error {
+func DescribeImage(ctx context.Context, hash string, img image.Image, details string) error {
 	processing.Lock(hash)
 	defer processing.Unlock(hash)
 
@@ -213,7 +216,7 @@ func DescribeImage(hash string, img image.Image, details string) error {
 
 	debugf("upload: running completion")
 
-	completion, err := OpenRouterRunCompletion(request)
+	completion, err := OpenRouterRunCompletion(ctx, request)
 	if err != nil {
 		os.Remove(path)
 

@@ -35,7 +35,7 @@ func init() {
 	}
 
 	if ImagePromptModel = os.Getenv("IMAGE_PROMPT_MODEL"); ImagePromptModel == "" {
-		ImagePromptModel = "nousresearch/hermes-3-llama-3.1-405b"
+		ImagePromptModel = "deepseek/deepseek-chat-v3-0324"
 	}
 
 	VisionModelUseCompatibility = os.Getenv("VISION_MODEL_USE_COMPATIBILITY") == "true"

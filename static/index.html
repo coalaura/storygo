@@ -15,21 +15,9 @@
 		<link rel="stylesheet" href="story.css" />
 
 		<script>
-			const ImageGeneration = {{ if .replicate }}true{{ else }}false{{ end }};
-
-			const Images = `<div id="images" class="dropdown">
-				{{- range .images }}
-					<div class="model" data-key="{{ .Key }}">
-						<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
-
-						<div class="tags">
-							{{- range .Tags }}
-								<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
-							{{- end }}
-						</div>
-					</div>
-				{{- end }}
-			</div>`;
+			const ImageGeneration = {{ if .replicate }}true{{ else }}false{{ end }},
+				ImageModels = {{ .images }},
+				ImageStyles = {{ .styles }};
 		</script>
 	</head>
 	<body>
@@ -39,17 +27,19 @@
 					World Bible
 
 					<div id="model" class="dropdown">
-						{{- range .models }}
-							<div class="model" data-key="{{ .Key }}">
-								<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
+						<div class="options">
+							{{- range .models }}
+								<div class="model" data-key="{{ .Key }}">
+									<div class="name{{ if .Vision }} vision{{ end }}">{{ .Name }}</div>
 
-								<div class="tags">
-									{{- range .Tags }}
-										<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
-									{{- end }}
+									<div class="tags">
+										{{- range .Tags }}
+											<div class="tag" title="{{ . }}" style="background-image:url('/icons/tags/{{ . }}.svg')"></div>
+										{{- end }}
+									</div>
 								</div>
-							</div>
-						{{- end }}
+							{{- end }}
+						</div>
 					</div>
 				</h2>
 
@@ -81,6 +71,8 @@
 					</div>
 
 					<div class="buttons">
+						<button id="create-image" title="Generate an image of the story at the current point"></button>
+						<div class="sep"></div>
 						<button id="import" title="Import a story from a json safe-file"></button>
 						<button id="export" title="Export the story as json, for later re-import"></button>
 						<button id="save" title="Export the story as a PDF"></button>

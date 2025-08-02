@@ -69,7 +69,7 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 
 	defer log.Debug("overview: finished overview")
 
-	RespondWithStream(w, stream, "")
+	RespondWithStream(w, ctx, stream, "")
 }
 
 func CreateOverviewRequest(model *Model, overview *GenerationRequest) (openrouter.ChatCompletionRequest, error) {

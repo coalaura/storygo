@@ -2,5 +2,6 @@
 _debug*
 
 images
+generated
 
 !.example.env

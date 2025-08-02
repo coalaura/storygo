@@ -21,6 +21,7 @@ func main() {
 		err := IndexTmpl.Execute(w, map[string]any{
 			"models":    Models,
 			"images":    ImageModels,
+			"styles":    ImageStyles,
 			"replicate": ReplicateToken != "",
 		})
 
@@ -32,7 +33,8 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	r.Handle("/*", http.StripPrefix("/", fs))
 
-	r.Get("/i/{hash}", HandleImageServe)
+	r.Get("/i/{hash}", HandleImageServe("images"))
+	r.Get("/g/{hash}", HandleImageServe("generated"))
 
 	r.Post("/image/hash", HandleImageHash)
 	r.Post("/image/upload", HandleImageUpload)

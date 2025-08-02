@@ -59,10 +59,6 @@ label {
 	cursor: not-allowed;
 }
 
-input[type="file"] {
-	display: none;
-}
-
 input[type="text"] {
 	height: auto;
 }
@@ -78,6 +74,18 @@ input[type="text"] {
 .buttons {
 	align-items: center;
 	gap: 6px;
+}
+
+.sep {
+	height: 20px;
+	width: 2px;
+	background: #24273a;
+	margin: 0 4px;
+}
+
+input[type="file"],
+.hidden {
+	display: none;
 }
 
 .flex.full {
@@ -103,19 +111,29 @@ input[type="text"] {
 	flex-direction: column;
 	font-weight: normal;
 	font-size: 16px;
-	overflow-y: auto;
-	max-height: 225px;
-	box-shadow: 0px 0px 15px 5px rgba(0, 0, 0, 0.2);
-	border: 1px solid #5b6078;
+	height: 28px;
+	box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.1);
+	width: 240px;
+	position: relative;
+	z-index: 20;
 }
 
 .dropdown:not(:hover) {
 	overflow: hidden;
-	height: 26px;
+	z-index: 10;
 }
 
 .dropdown:not(:hover) .model:not(.selected) {
 	display: none;
+}
+
+.dropdown .options {
+	position: absolute;
+	overflow-y: auto;
+	max-height: 225px;
+	width: 100%;
+	height: max-content;
+	border: 1px solid #5b6078;
 }
 
 .model {
@@ -162,6 +180,19 @@ input[type="text"] {
 	top: 0px;
 }
 
+.form-group {
+	display: flex;
+	gap: 10px;
+}
+
+.form-group label {
+	width: 180px;
+}
+
+.form-group .dropdown {
+	width: 100%;
+}
+
 .tags {
 	display: flex;
 	gap: 5px;
@@ -177,7 +208,7 @@ input[type="text"] {
 
 #model {
 	position: absolute;
-	top: calc(50% - 14px);
+	top: calc(50% - 13px);
 	right: 0;
 	z-index: 10;
 }
@@ -257,6 +288,7 @@ input[type="text"] {
 #suggest,
 #generate,
 #mode,
+#create-image,
 #import,
 #export,
 #save,
@@ -296,6 +328,7 @@ input[type="text"] {
 }
 
 #mode,
+#create-image,
 #import,
 #export,
 #save,
@@ -306,6 +339,10 @@ input[type="text"] {
 
 #mode {
 	background-image: url(icons/book.svg);
+}
+
+#create-image {
+	background-image: url(icons/image.svg);
 }
 
 #import {
@@ -324,6 +361,11 @@ input[type="text"] {
 	background-image: url(icons/delete.svg);
 }
 
+#page:not(.not-empty) #create-image+.sep,
+#page:not(.not-empty) #create-image {
+	display: none;
+}
+
 .modal-background,
 #modal {
 	position: absolute;
@@ -331,6 +373,10 @@ input[type="text"] {
 	left: 0;
 	right: 0;
 	bottom: 0;
+}
+
+#modal {
+	z-index: 20;
 }
 
 #modal:not(.open) {
