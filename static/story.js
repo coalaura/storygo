@@ -984,7 +984,7 @@ async function get(url, type = false) {
 				${modelDropdown}
 			</div>
 			<div class="form-group">
-				<label>Image Model</label>
+				<label>Image Style</label>
 				${styleDropdown}
 			</div>`,
 			["Cancel", "Generate"],
