@@ -1087,7 +1087,7 @@ async function get(url, type = false) {
 			return;
 		}
 
-		uploadImage(file);
+		uploadImage(file, true);
 	});
 
 	$suggest.addEventListener("click", async () => {
