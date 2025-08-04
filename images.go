@@ -131,7 +131,7 @@ func CreateImagePromptRequest(model *Model, image *GenerationRequest, style stri
 		MaxTokens:   8192 * 2,
 	}
 
-	prompt, err := BuildPrompt(&Model{}, ImagesTmpl, image, map[string]any{
+	prompt, err := BuildPrompt(nil, ImagesTmpl, image, map[string]any{
 		"Vision": model.Vision,
 		"Style":  style,
 	})

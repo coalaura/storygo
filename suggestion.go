@@ -82,22 +82,13 @@ func CreateSuggestionRequest(model *Model, suggestion *GenerationRequest) (openr
 
 	model.SetReasoning(&request)
 
-	prompt, err := BuildPrompt(model, SuggestionTmpl, suggestion, nil)
+	prompt, err := BuildPrompt(nil, SuggestionTmpl, suggestion, nil)
 	if err != nil {
 		return request, err
 	}
 
 	request.Messages = []openrouter.ChatCompletionMessage{
 		openrouter.SystemMessage(prompt),
-	}
-
-	if suggestion.Image != nil && model.Vision {
-		msg, err := ReadImageAsCompletionMessage(*suggestion.Image, model.UseCompatibility)
-		if err != nil {
-			return request, err
-		}
-
-		request.Messages = append(request.Messages, *msg)
 	}
 
 	return request, nil

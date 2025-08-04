@@ -41,6 +41,7 @@ func main() {
 	r.Post("/image/create/{style}", HandleImageGenerate)
 
 	r.Post("/tags", HandleTags)
+	r.Post("/context", HandleContext)
 	r.Post("/suggest", HandleSuggestion)
 	r.Post("/overview", HandleOverview)
 	r.Post("/generate", HandleGeneration)

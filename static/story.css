@@ -152,6 +152,7 @@ input[type="file"],
 	background: #494d64;
 	transition: 150ms;
 	cursor: pointer;
+	align-items: center;
 }
 
 .model:nth-child(2n+1) {
@@ -289,6 +290,7 @@ input[type="file"],
 
 #context {
 	height: 180px;
+	padding-right: 36px;
 }
 
 #direction {
@@ -296,6 +298,7 @@ input[type="file"],
 	padding-right: 36px;
 }
 
+#context-status,
 #text-status,
 #direction-status {
 	position: absolute;
@@ -306,9 +309,14 @@ input[type="file"],
 	pointer-events: none;
 }
 
+#context-status {
+	right: 195px;
+}
+
 .model .name.vision::before,
 .tags .tag,
 #create-tags,
+#idea,
 #suggest,
 #generate,
 #mode,
@@ -324,6 +332,7 @@ input[type="file"],
 	background-repeat: no-repeat;
 }
 
+#idea,
 #suggest,
 #generate {
 	position: absolute;
@@ -336,10 +345,22 @@ input[type="file"],
 
 #suggest {
 	top: 36px;
-	background-image: url(icons/thought.svg);
+}
+
+#idea {
+	right: 196px;
+}
+
+#idea,
+#suggest {
+	background-image: url(icons/suggest.svg);
 }
 
 .generating #generate {
+	background-image: url(icons/stop.svg);
+}
+
+.contexting #idea {
 	background-image: url(icons/stop.svg);
 }
 

@@ -35,6 +35,8 @@ async function get(url, type = false) {
 	const $page = document.getElementById("page"),
 		$model = document.getElementById("model"),
 		$context = document.getElementById("context"),
+		$contextStatus = document.getElementById("context-status"),
+		$idea = document.getElementById("idea"),
 		$preview = document.getElementById("preview"),
 		$image = document.getElementById("image"),
 		$createTags = document.getElementById("create-tags"),
@@ -66,6 +68,7 @@ async function get(url, type = false) {
 		tagging,
 		generating,
 		suggesting,
+		contexting,
 		image,
 		model,
 		mode = "generate";
@@ -143,6 +146,24 @@ async function get(url, type = false) {
 
 	function setDirectionStatus(status) {
 		$directionStatus.textContent = status || "";
+	}
+
+	function setContextStatus(status) {
+		$contextStatus.textContent = status || "";
+	}
+
+	function setContexting(status) {
+		contexting = status;
+
+		if (contexting) {
+			$page.classList.add("contexting");
+
+			$context.setAttribute("disabled", "true");
+		} else {
+			$page.classList.remove("contexting");
+
+			$context.removeAttribute("disabled");
+		}
 	}
 
 	function setSuggesting(status) {
@@ -244,7 +265,7 @@ async function get(url, type = false) {
 			image: image,
 		};
 
-		if (!payload.context) {
+		if (key !== "context" && !payload.context) {
 			payload.context = buildNewContext(payload);
 		}
 
@@ -398,11 +419,15 @@ async function get(url, type = false) {
 
 	let controller;
 
+	window.test = () => generate("context", false);
+
 	async function generate(endpoint, inline) {
-		if (uploading || generating || suggesting) return;
+		if (uploading || generating || suggesting || contexting) return;
 
 		if (endpoint === "overview") {
 			setValue($text, "");
+		} else if (endpoint === "context") {
+			setValue($context, "");
 		}
 
 		let _enable, _status, _element, _key;
@@ -412,6 +437,11 @@ async function get(url, type = false) {
 			_status = setDirectionStatus;
 			_element = $direction;
 			_key = "direction";
+		} else if (endpoint === "context") {
+			_enable = setContexting;
+			_status = setContextStatus;
+			_element = $context;
+			_key = "context";
 		} else {
 			_enable = setGenerating;
 			_status = setTextStatus;
@@ -734,7 +764,7 @@ async function get(url, type = false) {
 	});
 
 	$mode.addEventListener("click", async () => {
-		if (generating || suggesting) return;
+		if (generating || suggesting || contexting) return;
 
 		if (
 			$text.value.trim() &&
@@ -782,7 +812,7 @@ async function get(url, type = false) {
 	});
 
 	$export.addEventListener("click", async () => {
-		if (generating || suggesting) return;
+		if (generating || suggesting || contexting) return;
 
 		const zip = new JSZip();
 
@@ -851,7 +881,7 @@ async function get(url, type = false) {
 	});
 
 	$import.addEventListener("click", () => {
-		if (generating || uploading || suggesting) return;
+		if (generating || uploading || suggesting || contexting) return;
 
 		$importFile.click();
 	});
@@ -942,7 +972,7 @@ async function get(url, type = false) {
 	});
 
 	$delete.addEventListener("click", async () => {
-		if (uploading || generating || suggesting) return;
+		if (uploading || generating || suggesting || contexting) return;
 
 		if (
 			!(await confirm(
@@ -966,7 +996,7 @@ async function get(url, type = false) {
 	});
 
 	$createImage.addEventListener("click", async () => {
-		if (uploading || generating || suggesting) return;
+		if (uploading || generating || suggesting || contexting) return;
 
 		const modelDropdown = dropdown("model", ImageModels),
 			styleDropdown = dropdown(
@@ -1069,7 +1099,7 @@ async function get(url, type = false) {
 	});
 
 	$preview.addEventListener("click", () => {
-		if (uploading || generating || suggesting) return;
+		if (uploading || generating || suggesting || contexting) return;
 
 		if (image) {
 			setImage(null);
@@ -1088,6 +1118,16 @@ async function get(url, type = false) {
 		}
 
 		uploadImage(file, true);
+	});
+
+	$idea.addEventListener("click", async () => {
+		if (contexting) {
+			controller?.abort?.();
+
+			return;
+		}
+
+		generate("context", false);
 	});
 
 	$suggest.addEventListener("click", async () => {

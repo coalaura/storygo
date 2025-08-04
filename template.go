@@ -35,6 +35,7 @@ var (
 
 	GenerationTmpl *template.Template
 	SuggestionTmpl *template.Template
+	ContextTmpl    *template.Template
 	OverviewTmpl   *template.Template
 	ImagesTmpl     *template.Template
 	TagsTmpl       *template.Template
@@ -43,30 +44,12 @@ var (
 func init() {
 	IndexTmpl = html.Must(html.ParseFiles("static/index.html"))
 
-	gen, err := template.New("generation").Parse(PromptGeneration)
-	log.MustPanic(err)
-
-	GenerationTmpl = gen
-
-	sug, err := template.New("suggestion").Parse(PromptSuggestion)
-	log.MustPanic(err)
-
-	SuggestionTmpl = sug
-
-	ovr, err := template.New("overview").Parse(PromptOverview)
-	log.MustPanic(err)
-
-	OverviewTmpl = ovr
-
-	img, err := template.New("images").Parse(PromptImages)
-	log.MustPanic(err)
-
-	ImagesTmpl = img
-
-	tags, err := template.New("tags").Parse(PromptTags)
-	log.MustPanic(err)
-
-	TagsTmpl = tags
+	GenerationTmpl = template.Must(template.New("generation").Parse(PromptGeneration))
+	SuggestionTmpl = template.Must(template.New("suggestion").Parse(PromptSuggestion))
+	ContextTmpl = template.Must(template.New("context").Parse(PromptContext))
+	OverviewTmpl = template.Must(template.New("overview").Parse(PromptOverview))
+	ImagesTmpl = template.Must(template.New("images").Parse(PromptImages))
+	TagsTmpl = template.Must(template.New("tags").Parse(PromptTags))
 }
 
 func (g *GenerationRequest) Clean(trim bool) {
