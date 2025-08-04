@@ -24,6 +24,7 @@ type Stream struct {
 	closed uint32
 	wg     sync.WaitGroup
 	rch    chan Chunk
+	done   chan struct{}
 
 	mx    sync.Mutex
 	state string
@@ -31,15 +32,13 @@ type Stream struct {
 
 func (s *Stream) Send(chunk Chunk) bool {
 	if atomic.LoadUint32(&s.closed) == 1 {
-		log.Debug("already closed")
 		return false
 	}
 
 	select {
 	case s.rch <- chunk:
 		return true
-	default:
-		log.Debug("failed send")
+	case <-s.done:
 		return false
 	}
 }
@@ -62,9 +61,11 @@ func (s *Stream) Close() {
 		return
 	}
 
-	close(s.rch)
+	close(s.done)
 
 	s.wg.Wait()
+
+	close(s.rch)
 }
 
 func ErrChunk(err error) Chunk {
@@ -154,7 +155,8 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 	var (
 		encoder = json.NewEncoder(w)
 		stream  = &Stream{
-			rch: make(chan Chunk, 10),
+			rch:  make(chan Chunk, 10),
+			done: make(chan struct{}),
 		}
 	)
 
@@ -166,9 +168,13 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 		for {
 			select {
 			case <-ctx.Done():
+				debugf("cancelled response stream")
+
 				return
 			case chunk, ok := <-stream.rch:
 				if !ok {
+					debugf("closed response stream")
+
 					return
 				}
 

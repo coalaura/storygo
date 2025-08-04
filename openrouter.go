@@ -12,13 +12,11 @@ func OpenRouterClient() *openrouter.Client {
 }
 
 func OpenRouterAdjustRequest(request openrouter.ChatCompletionRequest) openrouter.ChatCompletionRequest {
-	/*
-		request.Provider = &openrouter.ChatProvider{
-			Quantizations: []string{
-				"fp8", "fp16", "bf16", "fp32", "unknown",
-			},
-		}
-	*/
+	request.Provider = &openrouter.ChatProvider{
+		Quantizations: []string{
+			"fp8", "fp16", "bf16", "fp32", "unknown",
+		},
+	}
 
 	return request
 }
