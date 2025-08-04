@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/coalaura/logger"
+	adapter "github.com/coalaura/logger/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -16,6 +17,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
+	r.Use(adapter.Middleware(log))
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		err := IndexTmpl.Execute(w, map[string]any{

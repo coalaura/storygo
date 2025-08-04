@@ -26,9 +26,6 @@ var (
 )
 
 func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
-	log.Info("image: new request")
-	defer log.Info("image: finished request")
-
 	if ReplicateToken == "" {
 		w.WriteHeader(http.StatusInternalServerError)
 

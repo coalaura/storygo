@@ -1,10 +1,10 @@
 module storygo
 
-go 1.24.4
+go 1.24.5
 
 require (
 	github.com/coalaura/lock v0.0.1
-	github.com/coalaura/logger v1.4.6
+	github.com/coalaura/logger v1.5.0
 	github.com/corona10/goimagehash v1.1.0
 	github.com/gen2brain/webp v0.5.5
 	github.com/go-chi/chi/v5 v5.2.2
@@ -16,6 +16,7 @@ require (
 
 require (
 	github.com/ebitengine/purego v0.8.4 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

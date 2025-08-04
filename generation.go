@@ -14,9 +14,6 @@ var (
 )
 
 func HandleGeneration(w http.ResponseWriter, r *http.Request) {
-	log.Info("generation: new request")
-	defer log.Info("generation: finished request")
-
 	var generation GenerationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&generation); err != nil {

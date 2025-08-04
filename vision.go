@@ -30,9 +30,6 @@ var (
 )
 
 func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
-	log.Info("upload: new request")
-	defer log.Info("upload: finished request")
-
 	input, hash, err := ReceiveImage(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,9 +60,6 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleImageHash(w http.ResponseWriter, r *http.Request) {
-	log.Info("hash: new request")
-	defer log.Info("hash: finished request")
-
 	_, hash, err := ReceiveImage(r)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

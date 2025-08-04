@@ -18,9 +18,6 @@ type TagList struct {
 }
 
 func HandleTags(w http.ResponseWriter, r *http.Request) {
-	log.Info("tags: new request")
-	defer log.Info("tags: finished request")
-
 	var tags GenerationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&tags); err != nil {

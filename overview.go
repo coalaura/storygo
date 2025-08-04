@@ -14,9 +14,6 @@ var (
 )
 
 func HandleOverview(w http.ResponseWriter, r *http.Request) {
-	log.Info("overview: new request")
-	defer log.Info("overview: finished request")
-
 	var overview GenerationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&overview); err != nil {

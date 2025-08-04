@@ -14,9 +14,6 @@ var (
 )
 
 func HandleContext(w http.ResponseWriter, r *http.Request) {
-	log.Info("context: new request")
-	defer log.Info("context: finished request")
-
 	var context GenerationRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&context); err != nil {
