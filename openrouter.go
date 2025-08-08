@@ -24,8 +24,6 @@ func OpenRouterAdjustRequest(request openrouter.ChatCompletionRequest) openroute
 func OpenRouterRunCompletion(ctx context.Context, request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionResponse, error) {
 	client := OpenRouterClient()
 
-	request = OpenRouterAdjustRequest(request)
-
 	response, err := client.CreateChatCompletion(ctx, request)
 	if err != nil {
 		return nil, err
