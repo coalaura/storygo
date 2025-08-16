@@ -489,7 +489,13 @@ async function get(url, type = false) {
 					return;
 				}
 
-				payload[_key] += chunk.text || chunk.error;
+				const text = chunk.text || chunk.error;
+
+				if (!text) {
+					return;
+				}
+
+				payload[_key] += text;
 
 				setValue(_element, payload[_key]);
 				_element.scrollTop = _element.scrollHeight;
