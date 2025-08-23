@@ -8,7 +8,7 @@ import (
 )
 
 func OpenRouterClient() *openrouter.Client {
-	return openrouter.NewClient(OpenRouterToken)
+	return openrouter.NewClient(OpenRouterToken, openrouter.WithXTitle("StoryGo"), openrouter.WithHTTPReferer("https://github.com/coalaura/storygo"))
 }
 
 func OpenRouterRunCompletion(ctx context.Context, request openrouter.ChatCompletionRequest) (*openrouter.ChatCompletionResponse, error) {

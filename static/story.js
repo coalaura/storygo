@@ -751,6 +751,19 @@ async function get(url, type = false) {
 		return data?.prompt || "";
 	}
 
+	function clear() {
+		setValue($context, "");
+		setValue($text, "");
+		setValue($direction, "");
+
+		$tags.innerHTML = "";
+
+		setModel(null);
+		setImage(null);
+
+		storeAll();
+	}
+
 	$model.addEventListener("click", (event) => {
 		const close = event.target.closest(".model");
 
@@ -901,6 +914,8 @@ async function get(url, type = false) {
 
 		reader.onload = async (event) => {
 			try {
+				clear();
+
 				const zip = await JSZip.loadAsync(event.target.result);
 
 				// read metadata
@@ -989,16 +1004,7 @@ async function get(url, type = false) {
 			return;
 		}
 
-		setValue($context, "");
-		setValue($text, "");
-		setValue($direction, "");
-
-		$tags.innerHTML = "";
-
-		setModel(null);
-		setImage(null);
-
-		storeAll();
+		clear();
 	});
 
 	$createImage.addEventListener("click", async () => {
