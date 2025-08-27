@@ -7,11 +7,16 @@ import (
 	adapter "github.com/coalaura/logger/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/revrost/go-openrouter"
 )
 
 var log = logger.New().DetectTerminal().WithOptions(logger.Options{
 	NoLevel: true,
 })
+
+func init() {
+	openrouter.DisableLogs()
+}
 
 func main() {
 	r := chi.NewRouter()
