@@ -143,11 +143,6 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rStream
 }
 
 func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, error) {
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		return nil, errors.New("failed to create flusher")
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -184,7 +179,11 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 				}
 
 				if _, err := w.Write([]byte("\n\n")); err == nil {
-					flusher.Flush()
+					if flusher, ok := w.(http.Flusher); ok {
+						flusher.Flush()
+					} else {
+						log.Warning("failed to create flusher")
+					}
 				} else {
 					log.WarningE(err)
 				}
