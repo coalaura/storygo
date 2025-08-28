@@ -178,13 +178,8 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 					return
 				}
 
-				if _, err := w.Write([]byte("\n\n")); err == nil {
-					if flusher, ok := w.(http.Flusher); ok {
-						flusher.Flush()
-					} else {
-						log.Warning("failed to create flusher")
-					}
-				} else {
+				err := SafeWriteAndFlush(w, ctx, []byte("\n\n"))
+				if err != nil {
 					log.WarningE(err)
 				}
 			}
@@ -192,4 +187,23 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 	}()
 
 	return stream, nil
+}
+
+func SafeWriteAndFlush(w http.ResponseWriter, ctx context.Context, data []byte) error {
+	if _, err := w.Write([]byte("\n\n")); err != nil {
+		return err
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		return errors.New("failed to create flusher")
+	}
+
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	flusher.Flush()
+
+	return nil
 }
