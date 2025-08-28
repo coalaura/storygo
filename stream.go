@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -175,6 +176,7 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 
 				if err := encoder.Encode(chunk); err != nil {
 					log.WarningE(err)
+
 					return
 				}
 
@@ -189,8 +191,8 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 	return stream, nil
 }
 
-func SafeWriteAndFlush(w http.ResponseWriter, ctx context.Context, data []byte) error {
-	if _, err := w.Write([]byte("\n\n")); err != nil {
+func SafeWriteAndFlush(w http.ResponseWriter, ctx context.Context, data []byte) (err error) {
+	if _, err := w.Write(data); err != nil {
 		return err
 	}
 
@@ -199,11 +201,20 @@ func SafeWriteAndFlush(w http.ResponseWriter, ctx context.Context, data []byte) 
 		return errors.New("failed to create flusher")
 	}
 
-	if err := ctx.Err(); err != nil {
-		return err
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		// ctx not yet cancelled
 	}
+
+	defer func() {
+		if rc := recover(); rc != nil {
+			err = fmt.Errorf("flush panic: %v", rc)
+		}
+	}()
 
 	flusher.Flush()
 
-	return nil
+	return
 }
