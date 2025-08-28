@@ -143,6 +143,12 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rStream
 }
 
 func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, error) {
+	rc := http.NewResponseController(w)
+
+	if err := rc.EnableFullDuplex(); err != nil {
+		return nil, err
+	}
+
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -179,35 +185,20 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 					return
 				}
 
-				err := SafeWriteAndFlush(w, ctx, []byte("\n\n"))
-				if err != nil {
+				if _, err := w.Write([]byte("\n\n")); err != nil {
 					log.WarningE(err)
+
+					return
+				}
+
+				if err := rc.Flush(); err != nil {
+					log.WarningE(err)
+
+					return
 				}
 			}
 		}
 	}()
 
 	return stream, nil
-}
-
-func SafeWriteAndFlush(w http.ResponseWriter, ctx context.Context, data []byte) error {
-	if _, err := w.Write(data); err != nil {
-		return err
-	}
-
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		return errors.New("failed to create flusher")
-	}
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		// ctx not yet cancelled
-	}
-
-	flusher.Flush()
-
-	return nil
 }
