@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -28,6 +29,12 @@ type Stream struct {
 
 	mx    sync.Mutex
 	state string
+}
+
+var pool = sync.Pool{
+	New: func() interface{} {
+		return &bytes.Buffer{}
+	},
 }
 
 func (s *Stream) Send(chunk Chunk) bool {
@@ -143,23 +150,14 @@ func ReceiveStream(stream *openrouter.ChatCompletionStream, stop string, rStream
 }
 
 func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, error) {
-	rc := http.NewResponseController(w)
-
-	if err := rc.EnableFullDuplex(); err != nil {
-		return nil, err
-	}
-
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	var (
-		encoder = json.NewEncoder(w)
-		stream  = &Stream{
-			rch:  make(chan Chunk, 10),
-			done: make(chan struct{}),
-		}
-	)
+	stream := &Stream{
+		rch:  make(chan Chunk, 10),
+		done: make(chan struct{}),
+	}
 
 	stream.wg.Add(1)
 
@@ -179,19 +177,7 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 					return
 				}
 
-				if err := encoder.Encode(chunk); err != nil {
-					log.WarningE(err)
-
-					return
-				}
-
-				if _, err := w.Write([]byte("\n\n")); err != nil {
-					log.WarningE(err)
-
-					return
-				}
-
-				if err := rc.Flush(); err != nil {
+				if err := WriteChunk(w, ctx, chunk); err != nil {
 					log.WarningE(err)
 
 					return
@@ -201,4 +187,40 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 	}()
 
 	return stream, nil
+}
+
+func WriteChunk(w http.ResponseWriter, ctx context.Context, chunk any) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	buf := pool.Get().(*bytes.Buffer)
+
+	buf.Reset()
+
+	defer pool.Put(buf)
+
+	if err := json.NewEncoder(buf).Encode(chunk); err != nil {
+		return err
+	}
+
+	buf.Write([]byte("\n\n"))
+
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		return err
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		return errors.New("failed to create flusher")
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		flusher.Flush()
+
+		return nil
+	}
 }
