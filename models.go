@@ -39,7 +39,7 @@ var (
 		// Zhipu’s GLM-4.5-Air; fast, tool-friendly multimodal model with long context.
 		NewModel("z-ai/glm-4.5", "GLM-4.5", false, true, []string{"fast", "versatile"}),
 		// Massive open model; shines in dialogue and role-play scenarios.
-		NewModel("nousresearch/hermes-3-llama-3.1-405b", "Hermes 3 405B", false, false, []string{"unmoderated", "character-driven"}),
+		NewModel("nousresearch/hermes-4-405b", "Hermes 3 405B", false, false, []string{"unmoderated", "character-driven"}),
 		// Open-weight Chinese model; excels at descriptive, imaginative prose.
 		NewModel("moonshotai/kimi-k2", "Kimi K2", false, false, []string{"unmoderated", "literary"}),
 	}
