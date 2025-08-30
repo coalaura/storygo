@@ -35,8 +35,8 @@ func RespondWithStream(w http.ResponseWriter, ctx context.Context, stream *openr
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("failed to create response stream")
-		log.WarningE(err)
+		log.Warnln("failed to create response stream")
+		log.Warnln(err)
 
 		return
 	}

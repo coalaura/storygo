@@ -46,5 +46,5 @@ func debugf(format string, args ...any) {
 		return
 	}
 
-	log.Debugf(format+"\n", args...)
+	log.Printf(format+"\n", args...)
 }

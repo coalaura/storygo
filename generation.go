@@ -19,8 +19,8 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&generation); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("generation: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("generation: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -31,7 +31,7 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if model == nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("generation: missing model")
+		log.Warnln("generation: missing model")
 
 		return
 	}
@@ -40,8 +40,8 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generation: failed to create request")
-		log.WarningE(err)
+		log.Warnln("generation: failed to create request")
+		log.Warnln(err)
 
 		return
 	}
@@ -56,15 +56,15 @@ func HandleGeneration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("generation: failed to start stream")
-		log.WarningE(err)
+		log.Warnln("generation: failed to start stream")
+		log.Warnln(err)
 
 		return
 	}
 
 	defer stream.Close()
 
-	defer log.Debug("generation: finished generation")
+	defer log.Println("generation: finished generation")
 
 	RespondWithStream(w, ctx, stream, "\n")
 }

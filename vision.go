@@ -34,8 +34,8 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("upload: failed to receive image")
-		log.WarningE(err)
+		log.Warnln("upload: failed to receive image")
+		log.Warnln(err)
 
 		return
 	}
@@ -48,8 +48,8 @@ func HandleImageUpload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("upload: failed to describe image")
-		log.WarningE(err)
+		log.Warnln("upload: failed to describe image")
+		log.Warnln(err)
 
 		return
 	}
@@ -64,8 +64,8 @@ func HandleImageHash(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("hash: failed to receive image")
-		log.WarningE(err)
+		log.Warnln("hash: failed to receive image")
+		log.Warnln(err)
 
 		return
 	}
@@ -92,7 +92,7 @@ func HandleImageServe(directory string) http.HandlerFunc {
 		if !IsHashValid(hash) {
 			w.WriteHeader(http.StatusBadRequest)
 
-			log.Warning("image: invalid hash")
+			log.Warnln("image: invalid hash")
 
 			return
 		}
@@ -101,8 +101,8 @@ func HandleImageServe(directory string) http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 
-			log.Warning("image: failed to open image")
-			log.WarningE(err)
+			log.Warnln("image: failed to open image")
+			log.Warnln(err)
 
 			return
 		}

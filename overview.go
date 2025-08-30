@@ -19,8 +19,8 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&overview); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("overview: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("overview: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -31,7 +31,7 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 	if model == nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("overview: missing model")
+		log.Warnln("overview: missing model")
 
 		return
 	}
@@ -40,8 +40,8 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("overview: failed to create request")
-		log.WarningE(err)
+		log.Warnln("overview: failed to create request")
+		log.Warnln(err)
 
 		return
 	}
@@ -56,15 +56,15 @@ func HandleOverview(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("overview: failed to start stream")
-		log.WarningE(err)
+		log.Warnln("overview: failed to start stream")
+		log.Warnln(err)
 
 		return
 	}
 
 	defer stream.Close()
 
-	defer log.Debug("overview: finished overview")
+	defer log.Println("overview: finished overview")
 
 	RespondWithStream(w, ctx, stream, "")
 }

@@ -19,8 +19,8 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&suggestion); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("suggestion: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("suggestion: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -31,7 +31,7 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 	if model == nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("suggestion: missing model")
+		log.Warnln("suggestion: missing model")
 
 		return
 	}
@@ -40,8 +40,8 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("suggestion: failed to create request")
-		log.WarningE(err)
+		log.Warnln("suggestion: failed to create request")
+		log.Warnln(err)
 
 		return
 	}
@@ -56,15 +56,15 @@ func HandleSuggestion(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("suggestion: failed to start stream")
-		log.WarningE(err)
+		log.Warnln("suggestion: failed to start stream")
+		log.Warnln(err)
 
 		return
 	}
 
 	defer stream.Close()
 
-	defer log.Debug("suggestion: finished completion")
+	defer log.Println("suggestion: finished completion")
 
 	RespondWithStream(w, ctx, stream, "")
 }

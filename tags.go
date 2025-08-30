@@ -23,8 +23,8 @@ func HandleTags(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&tags); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("suggestion: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("suggestion: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -35,8 +35,8 @@ func HandleTags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("tags: failed to create request")
-		log.WarningE(err)
+		log.Warnln("tags: failed to create request")
+		log.Warnln(err)
 
 		return
 	}
@@ -51,15 +51,15 @@ func HandleTags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("tags: failed to run completion")
-		log.WarningE(err)
+		log.Warnln("tags: failed to run completion")
+		log.Warnln(err)
 
 		return
 	}
 
 	debugd("tags-completion", &completion)
 
-	log.Debug("tags: parsing completion")
+	log.Println("tags: parsing completion")
 
 	var list TagList
 
@@ -67,8 +67,8 @@ func HandleTags(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("tags: failed to parse completion")
-		log.WarningE(err)
+		log.Warnln("tags: failed to parse completion")
+		log.Warnln(err)
 
 		return
 	}

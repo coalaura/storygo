@@ -178,7 +178,7 @@ func CreateResponseStream(w http.ResponseWriter, ctx context.Context) (*Stream, 
 				}
 
 				if err := WriteChunk(w, ctx, chunk); err != nil {
-					log.WarningE(err)
+					log.Warnln(err)
 
 					return
 				}

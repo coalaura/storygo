@@ -19,8 +19,8 @@ func HandleContext(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&context); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("context: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("context: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -31,7 +31,7 @@ func HandleContext(w http.ResponseWriter, r *http.Request) {
 	if model == nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("context: missing model")
+		log.Warnln("context: missing model")
 
 		return
 	}
@@ -40,8 +40,8 @@ func HandleContext(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("context: failed to create request")
-		log.WarningE(err)
+		log.Warnln("context: failed to create request")
+		log.Warnln(err)
 
 		return
 	}
@@ -56,15 +56,15 @@ func HandleContext(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("context: failed to start stream")
-		log.WarningE(err)
+		log.Warnln("context: failed to start stream")
+		log.Warnln(err)
 
 		return
 	}
 
 	defer stream.Close()
 
-	defer log.Debug("context: finished completion")
+	defer log.Println("context: finished completion")
 
 	RespondWithStream(w, ctx, stream, "")
 }

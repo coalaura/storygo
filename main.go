@@ -3,16 +3,13 @@ package main
 import (
 	"net/http"
 
-	"github.com/coalaura/logger"
-	adapter "github.com/coalaura/logger/http"
+	"github.com/coalaura/plain"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/revrost/go-openrouter"
 )
 
-var log = logger.New().DetectTerminal().WithOptions(logger.Options{
-	NoLevel: true,
-})
+var log = plain.New(plain.WithDate(plain.RFC3339Local))
 
 func init() {
 	openrouter.DisableLogs()
@@ -22,7 +19,7 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
-	r.Use(adapter.Middleware(log))
+	r.Use(log.Middleware())
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		err := IndexTmpl.Execute(w, map[string]any{
@@ -53,6 +50,6 @@ func main() {
 	r.Post("/overview", HandleOverview)
 	r.Post("/generate", HandleGeneration)
 
-	log.Debug("Listening at http://localhost:3344/")
+	log.Println("Listening at http://localhost:3344/")
 	http.ListenAndServe(":3344", r)
 }

@@ -29,7 +29,7 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if ReplicateToken == "" {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("image: missing replicate token")
+		log.Warnln("image: missing replicate token")
 
 		return
 	}
@@ -38,8 +38,8 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("image: invalid style index")
-		log.WarningE(err)
+		log.Warnln("image: invalid style index")
+		log.Warnln(err)
 
 		return
 	}
@@ -47,7 +47,7 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if index < 0 || index >= len(ImageStyles) {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("image: style index too high/low")
+		log.Warnln("image: style index too high/low")
 
 		return
 	}
@@ -61,8 +61,8 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&image); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("image: failed to decode request")
-		log.WarningE(err)
+		log.Warnln("image: failed to decode request")
+		log.Warnln(err)
 
 		return
 	}
@@ -73,7 +73,7 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if model == nil {
 		w.WriteHeader(http.StatusBadRequest)
 
-		log.Warning("image: missing model")
+		log.Warnln("image: missing model")
 
 		return
 	}
@@ -84,8 +84,8 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
-		log.Warning("image: failed to create response stream")
-		log.WarningE(err)
+		log.Warnln("image: failed to create response stream")
+		log.Warnln(err)
 
 		return
 	}
@@ -96,8 +96,8 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 
 	prompt, err := CreateImagePrompt(ctx, model, &image, style)
 	if err != nil {
-		log.Warning("image: failed to create prompt")
-		log.WarningE(err)
+		log.Warnln("image: failed to create prompt")
+		log.Warnln(err)
 
 		rStream.Send(ErrChunk(err))
 
@@ -108,8 +108,8 @@ func HandleImageGenerate(w http.ResponseWriter, r *http.Request) {
 
 	resultUrl, err := CreateImage(ctx, model, prompt)
 	if err != nil {
-		log.Warning("image: failed to create image")
-		log.WarningE(err)
+		log.Warnln("image: failed to create image")
+		log.Warnln(err)
 
 		rStream.Send(ErrChunk(err))
 

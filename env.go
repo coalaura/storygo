@@ -19,16 +19,16 @@ var (
 )
 
 func init() {
-	log.MustPanic(godotenv.Load())
+	log.MustFail(godotenv.Load())
 
 	Debug = os.Getenv("DEBUG") == "true"
 
 	if OpenRouterToken = os.Getenv("OPENROUTER_TOKEN"); OpenRouterToken == "" {
-		log.Panic(errors.New("missing openrouter token"))
+		log.MustFail(errors.New("missing openrouter token"))
 	}
 
 	if ReplicateToken = os.Getenv("REPLICATE_TOKEN"); ReplicateToken == "" {
-		log.Warning("No replicate key configured")
+		log.Warnln("No replicate key configured")
 	}
 
 	if VisionModel = os.Getenv("VISION_MODEL"); VisionModel == "" {
@@ -45,9 +45,9 @@ func init() {
 
 	VisionModelUseCompatibility = os.Getenv("VISION_MODEL_USE_COMPATIBILITY") == "true"
 
-	log.Debugf("Vision-Model: %s\n", VisionModel)
-	log.Debugf("Image-Model:  %s\n", ImagePromptModel)
-	log.Debugf("Vision-Comp.: %v\n", VisionModelUseCompatibility)
+	log.Printf("Vision-Model: %s\n", VisionModel)
+	log.Printf("Image-Model:  %s\n", ImagePromptModel)
+	log.Printf("Vision-Comp.: %v\n", VisionModelUseCompatibility)
 
 	debugf("Debug mode enabled")
 }
