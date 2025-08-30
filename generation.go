@@ -73,7 +73,7 @@ func CreateGenerationRequest(model *Model, generation *GenerationRequest) (openr
 	request := openrouter.ChatCompletionRequest{
 		Model:       model.Slug,
 		Temperature: 0.8,
-		MaxTokens:   1024,
+		MaxTokens:   2048,
 		Stop:        []string{"\n"},
 		Stream:      true,
 	}
