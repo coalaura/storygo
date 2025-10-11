@@ -31,7 +31,7 @@ var (
 		// Google's multimodal reasoning work-horse; structured output and tool use.
 		NewModel("google/gemini-2.5-pro", "Gemini 2.5 Pro", true, true, []string{"creative", "structured"}),
 		// xAI's vision model; witty personality, fewer policy limits, excellent creativity.
-		NewModel("x-ai/grok-4", "Grok 4", true, true, []string{"unmoderated", "creative"}, true),
+		NewModel("x-ai/grok-4-fast", "Grok 4 (Fast)", true, true, []string{"unmoderated", "creative"}, true),
 		// OpenAI's conversational all-rounder with fast vision; great pacing and dialogue.
 		NewModel("openai/gpt-4o", "GPT-4o", true, false, []string{"versatile", "conversational"}),
 		// Mid-tier Claude; cheaper than 4-series, still strong at analysis and consistency.
