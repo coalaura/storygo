@@ -16,7 +16,6 @@ import (
 	"github.com/coalaura/lock"
 	"github.com/corona10/goimagehash"
 	"github.com/gen2brain/webp"
-	"github.com/nfnt/resize"
 	"github.com/revrost/go-openrouter"
 
 	"github.com/go-chi/chi/v5"
@@ -130,10 +129,6 @@ func ReceiveImage(r *http.Request) (image.Image, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-
-	debugf("resizing image")
-
-	input = resize.Thumbnail(1024, 1024, input, resize.Lanczos3)
 
 	debugf("upload: hashing image")
 
